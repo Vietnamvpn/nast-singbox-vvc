@@ -1,19 +1,23 @@
 {
   "type": "vless",
-  "tag": "vless-ws-tls-in",
+  "tag": "vless-ws-tls-{{PORT}}",
   "listen": "::",
-  "listen_port": 0,
-  "users": [],
+  "listen_port": "{{PORT}}",
+  "users": [
+    {
+      "uuid": "{{UUID}}"
+    }
+  ],
   "transport": {
     "type": "ws",
-    "path": "/",
+    "path": "{{WS_PATH}}",
     "max_early_data": 2048,
     "early_data_header_name": "Sec-WebSocket-Protocol"
   },
   "tls": {
     "enabled": true,
-    "server_name": "",
-    "certificate_path": "",
-    "key_path": ""
+    "server_name": "{{DOMAIN}}",
+    "certificate_path": "{{CERT_PATH}}",
+    "key_path": "{{KEY_PATH}}"
   }
 }
