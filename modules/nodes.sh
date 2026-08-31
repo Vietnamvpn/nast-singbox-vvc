@@ -2,7 +2,7 @@
 
 # =========================================================
 # File: modules/nodes.sh
-# Chức năng: Quản lý nodes, cho phép thêm liên tiếp nhiều giao thức và chỉ build sau khi hoàn tất
+# Chức năng: Quản lý nodes, không còn menu quản lý user
 # =========================================================
 
 BASE_DIR="/root/nast-singbox-vvc"
@@ -30,7 +30,7 @@ select_certificate_menu() {
     
     echo -e "${CYAN}--- CHỌN CHỨNG CHỈ SSL CHO NODE ---${NC}"
     if [[ ! -e "${cert_files[0]}" ]]; then
-        echo -e "${YELLOW}Không tìm thấy chứng chỉ domain nào. Hệ thống sẽ dùng chứng chỉ tự ký mặc định.${NC}"
+        echo -e "${YELLOW}Không tìm thấy chứng chỉ domain nào trong certs/. Hệ thống sẽ dùng chứng chỉ tự ký mặc định.${NC}"
         echo "$BASE_DIR/certs/cert.crt|$BASE_DIR/certs/private.key"
         return
     fi
@@ -62,14 +62,12 @@ while true; do
     echo -e "${GREEN} 1.${NC} Thêm Node mới"
     echo -e "${GREEN} 2.${NC} Xóa Node"
     echo -e "${GREEN} 3.${NC} Hiển thị danh sách Link kết nối"
-    echo -e "${GREEN} 4.${NC} Quản lý Người dùng (Users)"
     echo -e "${GREEN} 0.${NC} Quay lại menu chính"
     echo -e "${BLUE}=================================================${NC}"
     read -p "Nhập lựa chọn của bạn: " node_choice
 
     case "$node_choice" in
         1)
-            # Vòng lặp cho phép thêm liên tiếp nhiều giao thức
             while true; do
                 clear
                 echo -e "${CYAN}--- CHỌN GIAO THỨC NODE ---${NC}"
@@ -90,14 +88,14 @@ while true; do
                     *) echo -e "${RED}Lựa chọn sai!${NC}"; sleep 1; continue ;;
                 endcase
 
-                # 1. Nhập Port (Trống tự ngẫu nhiên 2000-6000)
-                read -p "Nhập Port (Để trống sẽ tự động chọn ngẫu nhiên từ 2000-6000): " port
+                # 1. Nhập Port
+                read -p "Nhập Port (Để trống tự động chọn ngẫu nhiên 2000-6000): " port
                 if [[ -z "$port" ]]; then
                     port=$(get_random_unused_port)
                     info "Đã tự động chọn port ngẫu nhiên: $port"
                 fi
 
-                # 2. Nhập Tag (Trống tự động theo CountryCode-port, ví dụ HK-3387)
+                # 2. Nhập Tag
                 read -p "Nhập Tag/Tên node (Để trống tự động theo quốc gia + port): " tag
                 if [[ -z "$tag" ]]; then
                     cc=$(get_country_code)
@@ -105,8 +103,8 @@ while true; do
                     info "Đã tự động tạo Tag: $tag"
                 fi
 
-                # 3. Nhập Domain / SNI (Trống tự ngẫu nhiên hoặc lấy từ domain.json nếu có)
-                read -p "Nhập Domain hoặc SNI (Để trống hệ thống tự tạo ngẫu nhiên): " sni
+                # 3. Nhập Domain / SNI
+                read -p "Nhập Domain hoặc SNI (Để trống tự động lấy từ domain.json hoặc mặc định): " sni
                 if [[ -z "$sni" ]]; then
                     if [[ -f "$DATA_DIR/domain.json" ]] && [[ $(jq '. | length' "$DATA_DIR/domain.json") -gt 0 ]]; then
                         sni=$(jq -r '.[0].domain' "$DATA_DIR/domain.json")
@@ -145,7 +143,6 @@ while true; do
                     [[ -z "$grpc_service" ]] && grpc_service="grpc"
                 fi
 
-                # Đóng gói và ghi vào nodes.json (chưa build vội)
                 new_node=$(jq -n \
                     --arg protocol "$proto" \
                     --arg tag "$tag" \
@@ -173,7 +170,6 @@ while true; do
                 jq --argjson node "$new_node" '. + [$node]' "$DATA_DIR/nodes.json" > "$DATA_DIR/nodes.json.tmp" && mv "$DATA_DIR/nodes.json.tmp" "$DATA_DIR/nodes.json"
                 success "Đã thêm giao thức [${tag}] vào danh sách tạm thời!"
 
-                # Hỏi xem có muốn thêm nữa không
                 echo ""
                 read -p "Bạn có muốn thêm giao thức khác không? (Nhấn 'y' để tiếp tục, 'n' để dừng và lưu): " continue_add
                 if [[ "$continue_add" != "y" && "$continue_add" != "Y" ]]; then
@@ -181,7 +177,6 @@ while true; do
                 fi
             done
 
-            # Khi người dùng chọn dừng ('n'), tiến hành build config và restart sing-box một lần duy nhất
             info "Đang tiến hành build lại cấu hình và khởi động Sing-box..."
             build_config_json
             restart_singbox
@@ -191,7 +186,7 @@ while true; do
         2)
             clear
             echo -e "${CYAN}--- DANH SÁCH NODE HIỆN TẠI ---${NC}"
-            local count=$(jq '. | length' "$DATA_DIR/nodes.json")
+            count=$(jq '. | length' "$DATA_DIR/nodes.json")
             if [[ "$count" -eq 0 ]]; then
                 echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
                 read -p "Nhấn Enter để tiếp tục..."
@@ -199,8 +194,8 @@ while true; do
             fi
             
             for (( i=0; i<$count; i++ )); do
-                local t=$(jq -r ".[$i].tag" "$DATA_DIR/nodes.json")
-                local p=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
+                t=$(jq -r ".[$i].tag" "$DATA_DIR/nodes.json")
+                p=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
                 echo " [$i] Tag: $t | Protocol: $p"
             done
             
@@ -215,9 +210,9 @@ while true; do
             ;;
         3)
             clear
-            local vps_ip=$(curl -s4 icanhazip.com 2>/dev/null)
-            local users_count=$(jq '. | length' "$DATA_DIR/users.json")
-            local nodes_count=$(jq '. | length' "$DATA_DIR/nodes.json")
+            vps_ip=$(curl -s4 icanhazip.com 2>/dev/null)
+            users_count=$(jq '. | length' "$DATA_DIR/users.json")
+            nodes_count=$(jq '. | length' "$DATA_DIR/nodes.json")
             
             if [[ "$nodes_count" -eq 0 ]]; then
                 echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
@@ -226,23 +221,23 @@ while true; do
             fi
 
             for (( u=0; u<$users_count; u++ )); do
-                local uname=$(jq -r ".[$u].name" "$DATA_DIR/users.json")
-                local uuuid=$(jq -r ".[$u].uuid" "$DATA_DIR/users.json")
+                uname=$(jq -r ".[$u].name" "$DATA_DIR/users.json")
+                uuuid=$(jq -r ".[$u].uuid" "$DATA_DIR/users.json")
                 
                 echo -e "${BLUE}=================================================${NC}"
                 echo -e "${YELLOW}   DANH SÁCH LINK KẾT NỐI CHO USER: ${GREEN}${uname}${NC}"
                 echo -e "${BLUE}=================================================${NC}"
                 
                 for (( i=0; i<$nodes_count; i++ )); do
-                    local protocol=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
-                    local port=$(jq -r ".[$i].port" "$DATA_DIR/nodes.json")
-                    local tag=$(jq -r ".[$i].tag" "$DATA_DIR/nodes.json")
-                    local sni=$(jq -r ".[$i].server_name // empty" "$DATA_DIR/nodes.json")
-                    local pbk=$(jq -r ".[$i].public_key // empty" "$DATA_DIR/nodes.json")
-                    local sid=$(jq -r ".[$i].short_id // empty" "$DATA_DIR/nodes.json")
-                    local grpc_service=$(jq -r ".[$i].service_name // empty" "$DATA_DIR/nodes.json")
+                    protocol=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
+                    port=$(jq -r ".[$i].port" "$DATA_DIR/nodes.json")
+                    tag=$(jq -r ".[$i].tag" "$DATA_DIR/nodes.json")
+                    sni=$(jq -r ".[$i].server_name // empty" "$DATA_DIR/nodes.json")
+                    pbk=$(jq -r ".[$i].public_key // empty" "$DATA_DIR/nodes.json")
+                    sid=$(jq -r ".[$i].short_id // empty" "$DATA_DIR/nodes.json")
+                    grpc_service=$(jq -r ".[$i].service_name // empty" "$DATA_DIR/nodes.json")
                     
-                    local link=$(build_link "$protocol" "$uuuid" "$vps_ip" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service")
+                    link=$(build_link "$protocol" "$uuuid" "$vps_ip" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service")
                     
                     echo -e "${CYAN}Node: ${tag} (${protocol})${NC}"
                     echo -e "${GREEN}${link}${NC}"
