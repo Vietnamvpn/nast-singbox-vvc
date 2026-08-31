@@ -147,8 +147,8 @@ build_config_json() {
                 else . end
             ' "$tpl_file" > "$node_tmp"
 
-            # Đẩy inbound vừa build xong vào mảng inbounds_tmp
-            jq ". + [$(cat "$node_tmp")]" "$inbounds_tmp" > "${inbounds_tmp}.tmp" && mv "${inbounds_tmp}.tmp" "$inbounds_tmp"
+            # Đẩy inbound vừa build xong vào mảng inbounds_tmp một cách an toàn
+            jq --slurpfile new_node "$node_tmp" '. + $new_node' "$inbounds_tmp" > "${inbounds_tmp}.tmp" && mv "${inbounds_tmp}.tmp" "$inbounds_tmp"
             
             # Xoá file rác
             rm -f "$node_tmp" "$users_tmp"
