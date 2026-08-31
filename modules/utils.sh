@@ -150,10 +150,10 @@ build_config_json() {
                 .listen_port = ($node.port | tonumber) |
                 .users = $users[0] |
                 
-                # Sửa lỗi string/int cho tốc độ Hysteria2
+                # Đọc trực tiếp tốc độ từ nodes.json, nếu trống mặc định 1000
                 if .type == "hysteria2" then
-                    .up_mbps = 1000 |
-                    .down_mbps = 1000
+                    .up_mbps = (if $node.up_mbps != null then ($node.up_mbps | tonumber) else 1000 end) |
+                    .down_mbps = (if $node.down_mbps != null then ($node.down_mbps | tonumber) else 1000 end)
                 else . end |
                 
                 # Cấu hình TLS / Reality
@@ -194,7 +194,7 @@ build_config_json() {
     jq --slurpfile inbounds "$inbounds_tmp" '.inbounds = $inbounds[0]' "$config_out" > "${config_out}.tmp" && mv "${config_out}.tmp" "$config_out"
     rm -f "$inbounds_tmp"
     
-    success "Đã build cấu hình config.json mới thành công!"
+    success "Đã build cấu hình config.json mới thành công từ nodes.json!"
 }
 
 # =================== RÁP LINK KẾT NỐI (URI) ===================
