@@ -86,7 +86,7 @@ while true; do
                     4) proto="vless-grpc-reality" ;;
                     5) proto="vless-ws-tls" ;;
                     *) echo -e "${RED}Lựa chọn sai!${NC}"; sleep 1; continue ;;
-                endcase
+                esac
 
                 # 1. Nhập Port
                 read -p "Nhập Port (Để trống tự động chọn ngẫu nhiên 2000-6000): " port
