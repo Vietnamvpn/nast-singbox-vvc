@@ -43,14 +43,14 @@ chmod +x install.sh update.sh main.sh modules/*.sh
 mkdir -p "$BASE_DIR/data" "$BASE_DIR/certs"
 
 # Tự động tạo chứng chỉ tự ký (Self-signed) nếu chưa có
-if [[ ! -f "$BASE_DIR/certs/cert.crt" ]] || [[ ! -f "$BASE_DIR/certs/private.key" ]]; then
+if [[ ! -f "$BASE_DIR/certs/cert.crt" ]] || [[ ! -f "$BASE_DIR/certs/cert.key" ]]; then
     echo -e "${YELLOW}Đang tạo chứng chỉ SSL tự ký mặc định...${NC}"
     openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-        -keyout "$BASE_DIR/certs/private.key" \
+        -keyout "$BASE_DIR/certs/cert.key" \
         -out "$BASE_DIR/certs/cert.crt" \
         -subj "/C=US/ST=California/L=Los Angeles/O=Bing/OU=IT/CN=bing.com" >/dev/null 2>&1
     chmod 644 "$BASE_DIR/certs/cert.crt"
-    chmod 600 "$BASE_DIR/certs/private.key"
+    chmod 600 "$BASE_DIR/certs/cert.key"
     echo -e "${GREEN}Đã tạo chứng chỉ tại thư mục certs/${NC}"
 fi
 
