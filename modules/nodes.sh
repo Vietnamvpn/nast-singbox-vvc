@@ -2,7 +2,7 @@
 
 # =========================================================
 # File: modules/nodes.sh
-# Chức năng: Quản lý nodes, không còn menu quản lý user
+# Chức năng: Quản lý nodes, sửa lỗi bắt biến menu chứng chỉ SSL
 # =========================================================
 
 BASE_DIR="/root/nast-singbox-vvc"
@@ -24,25 +24,25 @@ get_country_code() {
     echo "$cc" | tr '[:lower:]' '[:upper:]'
 }
 
-# Hàm chọn chứng chỉ SSL theo số thứ tự (menu)
+# Hàm chọn chứng chỉ SSL theo số thứ tự (menu) - Đã fix xuất thông báo ra stderr để không làm bẩn biến
 select_certificate_menu() {
     local cert_files=("$BASE_DIR/certs/"*.crt)
     
-    echo -e "${CYAN}--- CHỌN CHỨNG CHỈ SSL CHO NODE ---${NC}"
+    echo -e "${CYAN}--- CHỌN CHỨNG CHỈ SSL CHO NODE ---${NC}" >&2
     if [[ ! -e "${cert_files[0]}" ]]; then
-        echo -e "${YELLOW}Không tìm thấy chứng chỉ domain nào trong certs/. Hệ thống sẽ dùng chứng chỉ tự ký mặc định.${NC}"
+        echo -e "${YELLOW}Không tìm thấy chứng chỉ domain nào trong certs/. Hệ thống sẽ dùng chứng chỉ tự ký mặc định.${NC}" >&2
         echo "$BASE_DIR/certs/cert.crt|$BASE_DIR/certs/private.key"
         return
     fi
     
-    echo " [0] Dùng chứng chỉ tự ký mặc định (cert.crt)"
+    echo " [0] Dùng chứng chỉ tự ký mặc định (cert.crt)" >&2
     local i=1
     for f in "${cert_files[@]}"; do
-        echo " [$i] $(basename "$f")"
+        echo " [$i] $(basename "$f")" >&2
         ((i++))
     done
     
-    read -p "Nhập số thứ tự chọn chứng chỉ: " cert_choice
+    read -p "Nhập số thứ tự chọn chứng chỉ: " cert_choice >&2
     
     if [[ "$cert_choice" =~ ^[0-9]+$ ]] && (( cert_choice > 0 && cert_choice <= ${#cert_files[@]} )); then
         local selected_crt="${cert_files[$((cert_choice-1))]}"
