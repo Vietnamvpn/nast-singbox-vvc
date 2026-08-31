@@ -22,6 +22,13 @@ ensure_nodes_file() {
     fi
 }
 
+# Đảm bảo file domain.json luôn tồn tại dưới dạng mảng JSON hợp lệ
+ensure_domain_file() {
+    if [[ ! -f "$DATA_DIR/domain.json" ]]; then
+        echo "[]" > "$DATA_DIR/domain.json"
+    fi
+}
+
 # Lấy mã quốc gia từ IP của VPS (mặc định VN nếu lỗi)
 get_country_code() {
     local cc=$(curl -s ipinfo.io/country 2>/dev/null)
@@ -65,6 +72,7 @@ select_certificate_menu() {
 while true; do
     ensure_admin_user
     ensure_nodes_file
+    ensure_domain_file
     clear
     echo -e "${BLUE}=================================================${NC}"
     echo -e "${YELLOW}            QUẢN LÝ NODE & KẾT NỐI${NC}"
@@ -113,16 +121,32 @@ while true; do
                     info "Đã tự động tạo Tag: $tag"
                 fi
 
+                vps_ip=$(curl -s4 icanhazip.com 2>/dev/null)
+
                 # 3. Nhập Domain / SNI
-                read -p "Nhập Domain hoặc SNI (Để trống tự động lấy từ domain.json hoặc mặc định): " sni
+                read -p "Nhập Domain hoặc SNI (Để trống tự động lấy từ domain.json hoặc IP/mặc định): " sni
                 if [[ -z "$sni" ]]; then
                     if [[ -f "$DATA_DIR/domain.json" ]] && [[ $(jq '. | length' "$DATA_DIR/domain.json" 2>/dev/null) -gt 0 ]]; then
                         sni=$(jq -r '.[0].domain' "$DATA_DIR/domain.json")
                     else
-                        sni="cloudflare.com"
+                        if [[ "$proto" == *"reality"* ]]; then
+                            sni="cloudflare.com"
+                        else
+                            sni="$vps_ip"
+                        fi
                     fi
                     info "Đã tự động gán SNI/Domain: $sni"
                 fi
+
+                # Tự động lưu tag và domain/IP tương ứng vào domain.json nếu chưa có
+                domain_entry=$(jq -n --arg tag "$tag" --arg domain "$sni" '{tag: $tag, domain: $domain}')
+                jq --argjson entry "$domain_entry" '
+                    if any(.[] ; .tag == $entry.tag) then
+                        map(if .tag == $entry.tag then .domain = $entry.domain else . end)
+                    else
+                        . + [$entry]
+                    end
+                ' "$DATA_DIR/domain.json" > "$DATA_DIR/domain.json.tmp" && mv "$DATA_DIR/domain.json.tmp" "$DATA_DIR/domain.json"
 
                 pbk=""
                 sid=""
@@ -130,6 +154,8 @@ while true; do
                 cert_path=""
                 key_path=""
                 private_key=""
+                up_mbps=""
+                down_mbps=""
 
                 if [[ "$proto" == "vless-reality"* ]]; then
                     info "Đang tạo cặp khóa Reality (X25519) tự động..."
@@ -153,6 +179,14 @@ while true; do
                     [[ -z "$grpc_service" ]] && grpc_service="grpc"
                 fi
 
+                if [[ "$proto" == "hysteria2" ]]; then
+                    read -p "Nhập tốc độ Upload (Mbps) (Để trống mặc định 1000): " up_mbps
+                    [[ -z "$up_mbps" ]] && up_mbps="1000"
+                    
+                    read -p "Nhập tốc độ Download (Mbps) (Để trống mặc định 1000): " down_mbps
+                    [[ -z "$down_mbps" ]] && down_mbps="1000"
+                fi
+
                 new_node=$(jq -n \
                     --arg protocol "$proto" \
                     --arg tag "$tag" \
@@ -164,6 +198,8 @@ while true; do
                     --arg grpc "$grpc_service" \
                     --arg cert "$cert_path" \
                     --arg key "$key_path" \
+                    --arg up "$up_mbps" \
+                    --arg down "$down_mbps" \
                     '{
                         protocol: $protocol,
                         tag: $tag,
@@ -174,7 +210,9 @@ while true; do
                         short_id: $sid,
                         service_name: $grpc,
                         cert_path: $cert,
-                        key_path: $key
+                        key_path: $key,
+                        up_mbps: (if $up != "" then ($up | tonumber) else null end),
+                        down_mbps: (if $down != "" then ($down | tonumber) else null end)
                     }')
 
                 jq --argjson node "$new_node" '. + [$node]' "$DATA_DIR/nodes.json" > "$DATA_DIR/nodes.json.tmp" && mv "$DATA_DIR/nodes.json.tmp" "$DATA_DIR/nodes.json"
@@ -211,7 +249,16 @@ while true; do
             
             read -p "Nhập số thứ tự (index) node muốn xóa: " idx
             if [[ "$idx" =~ ^[0-9]+$ ]] && (( idx >= 0 && idx < count )); then
+                # Lấy tag của node sắp xóa để dọn dẹp domain.json tương ứng nếu cần
+                del_tag=$(jq -r ".[$idx].tag" "$DATA_DIR/nodes.json")
+                
                 jq "del(.[$idx])" "$DATA_DIR/nodes.json" > "$DATA_DIR/nodes.json.tmp" && mv "$DATA_DIR/nodes.json.tmp" "$DATA_DIR/nodes.json"
+                
+                # Xóa tag tương ứng trong domain.json
+                if [[ -f "$DATA_DIR/domain.json" ]]; then
+                    jq --arg tag "$del_tag" '[.[] | select(.tag != $tag)]' "$DATA_DIR/domain.json" > "$DATA_DIR/domain.json.tmp" && mv "$DATA_DIR/domain.json.tmp" "$DATA_DIR/domain.json"
+                fi
+
                 build_config_json
                 restart_singbox
                 success "Đã xóa node thành công!"

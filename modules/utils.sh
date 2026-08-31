@@ -54,25 +54,44 @@ get_random_unused_port() {
 # =================== ĐIỀU KHIỂN SING-BOX ===================
 
 start_singbox() {
+    info "Đang tiến hành khởi động dịch vụ Sing-box..."
     systemctl start sing-box
-    success "Đã ra lệnh khởi động Sing-box."
+    if systemctl is-active --quiet sing-box; then
+        success "Dịch vụ Sing-box đã được khởi động thành công và đang hoạt động bình thường!"
+    else
+        die "Khởi động Sing-box thất bại! Vui lòng kiểm tra lại cấu hình hoặc log bằng lệnh 'journalctl -u sing-box -e'."
+    fi
 }
 
 stop_singbox() {
+    info "Đang tiến hành dừng dịch vụ Sing-box..."
     systemctl stop sing-box
-    success "Đã ra lệnh dừng Sing-box."
+    if ! systemctl is-active --quiet sing-box; then
+        success "Dịch vụ Sing-box đã được dừng hoàn toàn."
+    else
+        die "Không thể dừng dịch vụ Sing-box. Vui lòng kiểm tra lại tiến trình!"
+    fi
 }
 
 restart_singbox() {
+    info "Đang tiến hành khởi động lại dịch vụ Sing-box..."
     systemctl restart sing-box
-    success "Đã ra lệnh khởi động lại Sing-box."
+    if systemctl is-active --quiet sing-box; then
+        success "Dịch vụ Sing-box đã khởi động lại thành công và áp dụng cấu hình mới!"
+    else
+        die "Khởi động lại Sing-box thất bại! Cấu hình mới có thể có lỗi cú pháp. Hãy kiểm tra log bằng lệnh 'journalctl -u sing-box -e'."
+    fi
 }
 
 check_singbox_status() {
+    echo -n "Trạng thái dịch vụ Sing-box hiện tại: "
     if systemctl is-active --quiet sing-box; then
-        echo -e "${GREEN}Đang chạy${NC}"
+        echo -e "${GREEN}[ĐANG CHẠY - RUNNING]${NC}"
+        # Hiển thị thêm thông tin chi tiết uptime nếu service đang chạy
+        local uptime_info=$(systemctl show sing-box --property=ActiveEnterTimestamp 2>/dev/null)
+        echo -e "${CYAN}Thông tin: $uptime_info${NC}"
     else
-        echo -e "${RED}Đã dừng${NC}"
+        echo -e "${RED}[ĐÃ DỪNG - STOPPED / LỖI]${NC}"
     fi
 }
 
@@ -114,7 +133,10 @@ build_config_json() {
         if [[ -f "$tpl_file" ]]; then
             # Format object users.json cho tương thích từng giao thức
             local users_tmp=$(mktemp)
-            if [[ "$protocol" == "vless"* ]]; then
+            if [[ "$protocol" == "vless-reality" ]]; then
+                # TCP Vision cần flow
+                jq '[.[] | {uuid: .uuid, flow: "xtls-rprx-vision", name: .name}]' "$DATA_DIR/users.json" > "$users_tmp"
+            elif [[ "$protocol" == "vless-grpc-reality" || "$protocol" == "vless-ws-tls" ]]; then
                 jq '[.[] | {uuid: .uuid, name: .name}]' "$DATA_DIR/users.json" > "$users_tmp"
             elif [[ "$protocol" == "hysteria2" ]]; then
                 jq '[.[] | {password: .uuid, name: .name}]' "$DATA_DIR/users.json" > "$users_tmp"
@@ -128,22 +150,36 @@ build_config_json() {
                 .tag = $node.tag |
                 .listen_port = ($node.port | tonumber) |
                 .users = $users[0] |
+                
+                # Sửa lỗi string/int cho tốc độ Hysteria2
+                if .type == "hysteria2" then
+                    .up_mbps = 1000 |
+                    .down_mbps = 1000
+                else . end |
+                
+                # Cấu hình TLS / Reality
                 if .tls != null then
-                    if .tls.reality != null then
+                    if .tls.reality != null and .tls.reality.enabled == true then
                         .tls.server_name = $node.server_name |
                         .tls.reality.handshake.server = $node.server_name |
                         .tls.reality.private_key = $node.private_key |
                         .tls.reality.short_id = [$node.short_id]
                     else
-                        if $node.cert_path != null and $node.cert_path != "" then
-                            .tls.certificate_path = $node.cert_path |
-                            .tls.key_path = $node.key_path
+                        .tls.certificate_path = $node.cert_path |
+                        .tls.key_path = $node.key_path |
+                        if .tls.server_name != null then
+                            .tls.server_name = $node.server_name
                         else . end
                     end
-                else . end
-                |
-                if .transport != null and .transport.type == "grpc" then
-                    .transport.service_name = $node.service_name
+                else . end |
+                
+                # Cấu hình Transport
+                if .transport != null then
+                    if .transport.type == "grpc" then
+                        .transport.service_name = $node.service_name
+                    elif .transport.type == "ws" then
+                        .transport.path = "/"
+                    else . end
                 else . end
             ' "$tpl_file" > "$node_tmp"
 
