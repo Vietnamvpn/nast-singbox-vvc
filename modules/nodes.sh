@@ -15,6 +15,13 @@ ensure_admin_user() {
     fi
 }
 
+# Đảm bảo file nodes.json luôn tồn tại dưới dạng mảng JSON hợp lệ
+ensure_nodes_file() {
+    if [[ ! -f "$DATA_DIR/nodes.json" ]]; then
+        echo "[]" > "$DATA_DIR/nodes.json"
+    fi
+}
+
 # Lấy mã quốc gia từ IP của VPS (mặc định VN nếu lỗi)
 get_country_code() {
     local cc=$(curl -s ipinfo.io/country 2>/dev/null)
@@ -29,6 +36,8 @@ select_certificate_menu() {
     local cert_files=("$BASE_DIR/certs/"*.crt)
     
     echo -e "${CYAN}--- CHỌN CHỨNG CHỈ SSL CHO NODE ---${NC}" >&2
+    
+    # Kiểm tra xem file có thực sự tồn tại (do globbing "*.crt" có thể trả về chính chuỗi "*.crt" nếu không có file)
     if [[ ! -e "${cert_files[0]}" ]]; then
         echo -e "${YELLOW}Không tìm thấy chứng chỉ domain nào trong certs/. Hệ thống sẽ dùng chứng chỉ tự ký mặc định.${NC}" >&2
         echo "$BASE_DIR/certs/cert.crt|$BASE_DIR/certs/private.key"
@@ -55,6 +64,7 @@ select_certificate_menu() {
 
 while true; do
     ensure_admin_user
+    ensure_nodes_file
     clear
     echo -e "${BLUE}=================================================${NC}"
     echo -e "${YELLOW}            QUẢN LÝ NODE & KẾT NỐI${NC}"
@@ -106,7 +116,7 @@ while true; do
                 # 3. Nhập Domain / SNI
                 read -p "Nhập Domain hoặc SNI (Để trống tự động lấy từ domain.json hoặc mặc định): " sni
                 if [[ -z "$sni" ]]; then
-                    if [[ -f "$DATA_DIR/domain.json" ]] && [[ $(jq '. | length' "$DATA_DIR/domain.json") -gt 0 ]]; then
+                    if [[ -f "$DATA_DIR/domain.json" ]] && [[ $(jq '. | length' "$DATA_DIR/domain.json" 2>/dev/null) -gt 0 ]]; then
                         sni=$(jq -r '.[0].domain' "$DATA_DIR/domain.json")
                     else
                         sni="cloudflare.com"
@@ -186,7 +196,7 @@ while true; do
         2)
             clear
             echo -e "${CYAN}--- DANH SÁCH NODE HIỆN TẠI ---${NC}"
-            count=$(jq '. | length' "$DATA_DIR/nodes.json")
+            count=$(jq '. | length' "$DATA_DIR/nodes.json" 2>/dev/null || echo 0)
             if [[ "$count" -eq 0 ]]; then
                 echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
                 read -p "Nhấn Enter để tiếp tục..."
@@ -200,19 +210,21 @@ while true; do
             done
             
             read -p "Nhập số thứ tự (index) node muốn xóa: " idx
-            if [[ -n "$idx" ]]; then
+            if [[ "$idx" =~ ^[0-9]+$ ]] && (( idx >= 0 && idx < count )); then
                 jq "del(.[$idx])" "$DATA_DIR/nodes.json" > "$DATA_DIR/nodes.json.tmp" && mv "$DATA_DIR/nodes.json.tmp" "$DATA_DIR/nodes.json"
                 build_config_json
                 restart_singbox
                 success "Đã xóa node thành công!"
+            else
+                echo -e "${RED}[LỖI] Số thứ tự không hợp lệ!${NC}"
             fi
             read -p "Nhấn Enter để tiếp tục..."
             ;;
         3)
             clear
             vps_ip=$(curl -s4 icanhazip.com 2>/dev/null)
-            users_count=$(jq '. | length' "$DATA_DIR/users.json")
-            nodes_count=$(jq '. | length' "$DATA_DIR/nodes.json")
+            users_count=$(jq '. | length' "$DATA_DIR/users.json" 2>/dev/null || echo 0)
+            nodes_count=$(jq '. | length' "$DATA_DIR/nodes.json" 2>/dev/null || echo 0)
             
             if [[ "$nodes_count" -eq 0 ]]; then
                 echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
