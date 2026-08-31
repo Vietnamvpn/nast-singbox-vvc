@@ -80,7 +80,7 @@ while true; do
                 echo " 5. VLESS WS TLS"
                 read -p "Chọn giao thức (1-5): " proto_choice
                 
-                local proto=""
+                proto=""
                 case "$proto_choice" in
                     1) proto="hysteria2" ;;
                     2) proto="tuic" ;;
@@ -88,7 +88,7 @@ while true; do
                     4) proto="vless-grpc-reality" ;;
                     5) proto="vless-ws-tls" ;;
                     *) echo -e "${RED}Lựa chọn sai!${NC}"; sleep 1; continue ;;
-                esac
+                endcase
 
                 # 1. Nhập Port (Trống tự ngẫu nhiên 2000-6000)
                 read -p "Nhập Port (Để trống sẽ tự động chọn ngẫu nhiên từ 2000-6000): " port
@@ -100,7 +100,7 @@ while true; do
                 # 2. Nhập Tag (Trống tự động theo CountryCode-port, ví dụ HK-3387)
                 read -p "Nhập Tag/Tên node (Để trống tự động theo quốc gia + port): " tag
                 if [[ -z "$tag" ]]; then
-                    local cc=$(get_country_code)
+                    cc=$(get_country_code)
                     tag="${cc}-${port}"
                     info "Đã tự động tạo Tag: $tag"
                 fi
@@ -116,16 +116,16 @@ while true; do
                     info "Đã tự động gán SNI/Domain: $sni"
                 fi
 
-                local pbk=""
-                local sid=""
-                local grpc_service=""
-                local cert_path=""
-                local key_path=""
-                local private_key=""
+                pbk=""
+                sid=""
+                grpc_service=""
+                cert_path=""
+                key_path=""
+                private_key=""
 
                 if [[ "$proto" == "vless-reality"* ]]; then
                     info "Đang tạo cặp khóa Reality (X25519) tự động..."
-                    local keypair=$(sing-box generate reality-keypair 2>/dev/null)
+                    keypair=$(sing-box generate reality-keypair 2>/dev/null)
                     private_key=$(echo "$keypair" | grep "PrivateKey" | awk '{print $2}')
                     pbk=$(echo "$keypair" | grep "PublicKey" | awk '{print $2}')
                     
@@ -135,7 +135,7 @@ while true; do
                     fi
                     sid=$(openssl rand -hex 4)
                 elif [[ "$proto" == "vless-ws-tls" || "$proto" == "hysteria2" || "$proto" == "tuic" ]]; then
-                    local cert_info=$(select_certificate_menu)
+                    cert_info=$(select_certificate_menu)
                     cert_path=$(echo "$cert_info" | cut -d'|' -f1)
                     key_path=$(echo "$cert_info" | cut -d'|' -f2)
                 fi
@@ -146,7 +146,7 @@ while true; do
                 fi
 
                 # Đóng gói và ghi vào nodes.json (chưa build vội)
-                local new_node=$(jq -n \
+                new_node=$(jq -n \
                     --arg protocol "$proto" \
                     --arg tag "$tag" \
                     --argjson port "$port" \
