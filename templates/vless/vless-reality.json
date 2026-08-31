@@ -1,0 +1,22 @@
+{
+  "type": "vless",
+  "tag": "vless-reality-in",
+  "listen": "::",
+  "listen_port": 0,
+  "users": [],
+  "tls": {
+    "enabled": true,
+    "server_name": "",
+    "reality": {
+      "enabled": true,
+      "handshake": {
+        "server": "",
+        "server_port": 443
+      },
+      "private_key": "",
+      "short_id": [
+        ""
+      ]
+    }
+  }
+}

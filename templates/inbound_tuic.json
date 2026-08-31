@@ -1,0 +1,18 @@
+{
+  "type": "tuic",
+  "tag": "tuic-in",
+  "listen": "::",
+  "listen_port": 0,
+  "users": [],
+  "congestion_control": "bbr",
+  "auth_timeout": "3s",
+  "zero_rtt_handshake": false,
+  "tls": {
+    "enabled": true,
+    "alpn": [
+      "h3"
+    ],
+    "certificate_path": "",
+    "key_path": ""
+  }
+}

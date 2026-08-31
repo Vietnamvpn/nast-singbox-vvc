@@ -1,0 +1,16 @@
+{
+  "type": "hysteria2",
+  "tag": "hy2-in",
+  "listen": "::",
+  "listen_port": 0,
+  "users": [],
+  "ignore_client_bandwidth": false,
+  "tls": {
+    "enabled": true,
+    "alpn": [
+      "h3"
+    ],
+    "certificate_path": "",
+    "key_path": ""
+  }
+}
