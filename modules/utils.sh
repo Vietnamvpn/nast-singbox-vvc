@@ -84,7 +84,6 @@ restart_singbox() {
 }
 
 check_singbox_status() {
-    echo -n "Trạng thái dịch vụ Sing-box hiện tại: "
     if systemctl is-active --quiet sing-box; then
         echo -e "${GREEN}[ĐANG CHẠY - RUNNING]${NC}"
         # Hiển thị thêm thông tin chi tiết uptime nếu service đang chạy
