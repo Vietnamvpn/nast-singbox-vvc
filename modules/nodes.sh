@@ -2,7 +2,7 @@
 
 # =========================================================
 # File: modules/nodes.sh
-# Chức năng: Quản lý nodes, sửa lỗi bắt biến menu chứng chỉ SSL
+# Chức năng: Quản lý nodes, tối ưu hóa lưu trữ thông số theo từng giao thức riêng biệt
 # =========================================================
 
 BASE_DIR="/root/nast-singbox-vvc"
@@ -148,6 +148,7 @@ while true; do
                     end
                 ' "$DATA_DIR/domain.json" > "$DATA_DIR/domain.json.tmp" && mv "$DATA_DIR/domain.json.tmp" "$DATA_DIR/domain.json"
 
+                # Khởi tạo các biến tùy chọn theo từng giao thức
                 pbk=""
                 sid=""
                 grpc_service=""
@@ -157,63 +158,138 @@ while true; do
                 up_mbps=""
                 down_mbps=""
 
-                if [[ "$proto" == "vless-reality"* ]]; then
-                    info "Đang tạo cặp khóa Reality (X25519) tự động..."
-                    keypair=$(sing-box generate reality-keypair 2>/dev/null)
-                    private_key=$(echo "$keypair" | grep "PrivateKey" | awk '{print $2}')
-                    pbk=$(echo "$keypair" | grep "PublicKey" | awk '{print $2}')
-                    
-                    if [[ -z "$private_key" ]]; then
-                        private_key=$(openssl rand -base64 32)
-                        pbk=$(openssl rand -base64 32)
-                    fi
-                    sid=$(openssl rand -hex 4)
-                elif [[ "$proto" == "vless-ws-tls" || "$proto" == "hysteria2" || "$proto" == "tuic" ]]; then
-                    cert_info=$(select_certificate_menu)
-                    cert_path=$(echo "$cert_info" | cut -d'|' -f1)
-                    key_path=$(echo "$cert_info" | cut -d'|' -f2)
-                fi
+                # Thu thập thông số riêng biệt tùy thuộc vào giao thức được chọn
+                case "$proto" in
+                    "vless-reality"|"vless-grpc-reality")
+                        info "Đang tạo cặp khóa Reality (X25519) tự động..."
+                        keypair=$(sing-box generate reality-keypair 2>/dev/null)
+                        private_key=$(echo "$keypair" | grep "PrivateKey" | awk '{print $2}')
+                        pbk=$(echo "$keypair" | grep "PublicKey" | awk '{print $2}')
+                        
+                        if [[ -z "$private_key" ]]; then
+                            private_key=$(openssl rand -base64 32)
+                            pbk=$(openssl rand -base64 32)
+                        fi
+                        sid=$(openssl rand -hex 4)
 
-                if [[ "$proto" == "vless-grpc-reality" ]]; then
-                    read -p "Nhập gRPC ServiceName (Để trống mặc định 'grpc'): " grpc_service
-                    [[ -z "$grpc_service" ]] && grpc_service="grpc"
-                fi
+                        if [[ "$proto" == "vless-grpc-reality" ]]; then
+                            read -p "Nhập gRPC ServiceName (Để trống mặc định 'grpc'): " grpc_service
+                            [[ -z "$grpc_service" ]] && grpc_service="grpc"
+                        fi
+                        ;;
+                    "vless-ws-tls"|"hysteria2"|"tuic")
+                        cert_info=$(select_certificate_menu)
+                        cert_path=$(echo "$cert_info" | cut -d'|' -f1)
+                        key_path=$(echo "$cert_info" | cut -d'|' -f2)
 
-                if [[ "$proto" == "hysteria2" ]]; then
-                    read -p "Nhập tốc độ Upload (Mbps) (Để trống mặc định 1000): " up_mbps
-                    [[ -z "$up_mbps" ]] && up_mbps="1000"
-                    
-                    read -p "Nhập tốc độ Download (Mbps) (Để trống mặc định 1000): " down_mbps
-                    [[ -z "$down_mbps" ]] && down_mbps="1000"
-                fi
+                        if [[ "$proto" == "hysteria2" ]]; then
+                            read -p "Nhập tốc độ Upload (Mbps) (Để trống mặc định 1000): " up_mbps
+                            [[ -z "$up_mbps" ]] && up_mbps="1000"
+                            
+                            read -p "Nhập tốc độ Download (Mbps) (Để trống mặc định 1000): " down_mbps
+                            [[ -z "$down_mbps" ]] && down_mbps="1000"
+                        fi
+                        ;;
+                esac
 
-                new_node=$(jq -n \
-                    --arg protocol "$proto" \
-                    --arg tag "$tag" \
-                    --argjson port "$port" \
-                    --arg sni "$sni" \
-                    --arg pbk "$pbk" \
-                    --arg priv "$private_key" \
-                    --arg sid "$sid" \
-                    --arg grpc "$grpc_service" \
-                    --arg cert "$cert_path" \
-                    --arg key "$key_path" \
-                    --arg up "$up_mbps" \
-                    --arg down "$down_mbps" \
-                    '{
-                        protocol: $protocol,
-                        tag: $tag,
-                        port: $port,
-                        server_name: $sni,
-                        public_key: $pbk,
-                        private_key: $priv,
-                        short_id: $sid,
-                        service_name: $grpc,
-                        cert_path: $cert,
-                        key_path: $key,
-                        up_mbps: (if $up != "" then ($up | tonumber) else null end),
-                        down_mbps: (if $down != "" then ($down | tonumber) else null end)
-                    }')
+                # Xây dựng đối tượng JSON gọn gàng, chỉ chứa thông số thực sự cần thiết theo từng giao thức
+                case "$proto" in
+                    "hysteria2")
+                        new_node=$(jq -n \
+                            --arg protocol "$proto" \
+                            --arg tag "$tag" \
+                            --argjson port "$port" \
+                            --arg sni "$sni" \
+                            --arg cert "$cert_path" \
+                            --arg key "$key_path" \
+                            --arg up "$up_mbps" \
+                            --arg down "$down_mbps" \
+                            '{
+                                protocol: $protocol,
+                                tag: $tag,
+                                port: $port,
+                                server_name: $sni,
+                                cert_path: $cert,
+                                key_path: $key,
+                                up_mbps: ($up | tonumber),
+                                down_mbps: ($down | tonumber)
+                            }')
+                        ;;
+                    "tuic")
+                        new_node=$(jq -n \
+                            --arg protocol "$proto" \
+                            --arg tag "$tag" \
+                            --argjson port "$port" \
+                            --arg sni "$sni" \
+                            --arg cert "$cert_path" \
+                            --arg key "$key_path" \
+                            '{
+                                protocol: $protocol,
+                                tag: $tag,
+                                port: $port,
+                                server_name: $sni,
+                                cert_path: $cert,
+                                key_path: $key
+                            }')
+                        ;;
+                    "vless-reality")
+                        new_node=$(jq -n \
+                            --arg protocol "$proto" \
+                            --arg tag "$tag" \
+                            --argjson port "$port" \
+                            --arg sni "$sni" \
+                            --arg pbk "$pbk" \
+                            --arg priv "$private_key" \
+                            --arg sid "$sid" \
+                            '{
+                                protocol: $protocol,
+                                tag: $tag,
+                                port: $port,
+                                server_name: $sni,
+                                public_key: $pbk,
+                                private_key: $priv,
+                                short_id: $sid
+                            }')
+                        ;;
+                    "vless-grpc-reality")
+                        new_node=$(jq -n \
+                            --arg protocol "$proto" \
+                            --arg tag "$tag" \
+                            --argjson port "$port" \
+                            --arg sni "$sni" \
+                            --arg pbk "$pbk" \
+                            --arg priv "$private_key" \
+                            --arg sid "$sid" \
+                            --arg grpc "$grpc_service" \
+                            '{
+                                protocol: $protocol,
+                                tag: $tag,
+                                port: $port,
+                                server_name: $sni,
+                                public_key: $pbk,
+                                private_key: $priv,
+                                short_id: $sid,
+                                service_name: $grpc
+                            }')
+                        ;;
+                    "vless-ws-tls")
+                        new_node=$(jq -n \
+                            --arg protocol "$proto" \
+                            --arg tag "$tag" \
+                            --argjson port "$port" \
+                            --arg sni "$sni" \
+                            --arg cert "$cert_path" \
+                            --arg key "$key_path" \
+                            '{
+                                protocol: $protocol,
+                                tag: $tag,
+                                port: $port,
+                                server_name: $sni,
+                                cert_path: $cert,
+                                key_path: $key
+                            }')
+                        ;;
+                esac
 
                 jq --argjson node "$new_node" '. + [$node]' "$DATA_DIR/nodes.json" > "$DATA_DIR/nodes.json.tmp" && mv "$DATA_DIR/nodes.json.tmp" "$DATA_DIR/nodes.json"
                 success "Đã thêm giao thức [${tag}] vào danh sách tạm thời!"
