@@ -2,7 +2,7 @@
 
 # =========================================================
 # File: modules/nodes.sh
-# Chức năng: Quản lý nodes, tự động mở/đóng cổng, sửa node, SNI ngẫu nhiên cho Reality và chỉ mục menu từ 1
+# Chức năng: Quản lý nodes, tự động mở/đóng cổng, sửa node, SNI ngẫu nhiên cho Reality
 # =========================================================
 
 BASE_DIR="/root/nast-singbox-vvc"
@@ -66,31 +66,48 @@ close_port() {
 }
 
 select_certificate_menu() {
-    local cert_files=("$BASE_DIR/certs/"*.crt)
+    local cert_dir="$BASE_DIR/certs"
+    mkdir -p "$cert_dir"
     
-    echo -e "${CYAN}--- CHỌN CHỨNG CHỈ SSL CHO NODE ---${NC}" >&2
-    
-    if [[ ! -e "${cert_files[0]}" ]]; then
-        echo -e "${YELLOW}Không tìm thấy chứng chỉ domain nào trong certs/. Hệ thống sẽ dùng chứng chỉ tự ký mặc định.${NC}" >&2
-        echo "$BASE_DIR/certs/cert.crt|$BASE_DIR/certs/private.key"
+    shopt -s nullglob
+    local cert_files=("$cert_dir"/*.crt)
+    shopt -u nullglob
+
+    echo -e "${CYAN}-------------------------------------------------${NC}" >&2
+    echo -e "${CYAN}          CHỌN CHỨNG CHỈ SSL CHO NODE            ${NC}" >&2
+    echo -e "${CYAN}-------------------------------------------------${NC}" >&2
+
+    if [[ ${#cert_files[@]} -eq 0 ]]; then
+        echo -e "${YELLOW}[!] Không tìm thấy chứng chỉ domain nào trong $cert_dir.${NC}" >&2
+        echo -e "${YELLOW}Hệ thống sẽ dùng chứng chỉ mặc định: cert.crt${NC}" >&2
+        echo "$cert_dir/cert.crt|$cert_dir/private.key"
         return
     fi
-    
-    echo " Để trống mặc định là (cert.crt)" >&2
+
+    echo -e " Để trống nhấn Enter sẽ tự chọn mặc định: [1] $(basename "${cert_files[0]}")" >&2
     local i=1
     for f in "${cert_files[@]}"; do
-        echo " [$i] $(basename "$f")" >&2
+        echo -e " [${GREEN}$i${NC}] $(basename "$f")" >&2
         ((i++))
     done
-    
-    read -p "Nhập số thứ tự chọn chứng chỉ: " cert_choice >&2
-    
-    if [[ "$cert_choice" =~ ^[0-9]+$ ]] && (( cert_choice > 0 && cert_choice <= ${#cert_files[@]} )); then
+
+    read -p "Nhập số thứ tự chứng chỉ chọn (Mặc định 1): " cert_choice >&2
+
+    if [[ -z "$cert_choice" ]]; then
+        cert_choice=1
+    fi
+
+    if [[ "$cert_choice" =~ ^[0-9]+$ ]] && (( cert_choice >= 1 && cert_choice <= ${#cert_files[@]} )); then
         local selected_crt="${cert_files[$((cert_choice-1))]}"
         local selected_key="${selected_crt%.crt}.key"
+        [[ ! -f "$selected_key" ]] && selected_key="$cert_dir/private.key"
         echo "${selected_crt}|${selected_key}"
     else
-        echo "$BASE_DIR/certs/cert.crt|$BASE_DIR/certs/private.key"
+        echo -e "${YELLOW}[!] Lựa chọn không hợp lệ, tự động dùng [1] $(basename "${cert_files[0]}")!${NC}" >&2
+        local selected_crt="${cert_files[0]}"
+        local selected_key="${selected_crt%.crt}.key"
+        [[ ! -f "$selected_key" ]] && selected_key="$cert_dir/private.key"
+        echo "${selected_crt}|${selected_key}"
     fi
 }
 
@@ -99,27 +116,29 @@ while true; do
     ensure_nodes_file
     ensure_domain_file
     clear
-    echo -e "${BLUE}=================================================${NC}"
-    echo -e "${YELLOW}            QUẢN LÝ NODE & KẾT NỐI${NC}"
-    echo -e "${BLUE}=================================================${NC}"
-    echo -e "${GREEN} 1.${NC} Thêm Giao Thức Mới"
-    echo -e "${GREEN} 2.${NC} Cập Nhật Giao Thức"
-    echo -e "${GREEN} 3.${NC} Xóa Giao Thức"
-    echo -e "${GREEN} 4.${NC} Hiển Thị Link Kết Nối"
+    echo -e "${BLUE}=================================================================================================${NC}"
+    echo -e "${GREEN}                                    QUẢN LÝ NODE & KẾT NỐI                                      ${NC}"
+    echo -e "${BLUE}=================================================================================================${NC}"
+    echo -e "${YELLOW} 1.${NC} Thêm Giao Thức Mới"
+    echo -e "${YELLOW} 2.${NC} Cập Nhật Giao Thức"
+    echo -e "${YELLOW} 3.${NC} Xóa Giao Thức"
+    echo -e "${YELLOW} 4.${NC} Hiển Thị Link Kết Nối"
     echo -e "${RED} 0.${NC} Quay lại menu chính"
-    echo -e "${BLUE}=================================================${NC}"
-    read -p "Nhập lựa chọn của bạn: " node_choice
+    echo -e "${BLUE}=================================================================================================${NC}"
+    read -p "Vui lòng nhập lựa chọn của bạn: " node_choice
 
     case "$node_choice" in
         1)
             while true; do
                 clear
-                echo -e "${CYAN}--- CHỌN GIAO THỨC NODE ---${NC}"
-                echo " 1. Hysteria 2"
-                echo " 2. TUIC"
-                echo " 3. VLESS Reality (TCP Vision)"
-                echo " 4. VLESS gRPC Reality"
-                echo " 5. VLESS WS TLS"
+                echo -e "${CYAN}-------------------------------------------------${NC}"
+                echo -e "${CYAN}               CHỌN GIAO THỨC NODE               ${NC}"
+                echo -e "${CYAN}-------------------------------------------------${NC}"
+                echo -e " ${GREEN}1.${NC} Hysteria 2"
+                echo -e " ${GREEN}2.${NC} TUIC"
+                echo -e " ${GREEN}3.${NC} VLESS Reality (TCP Vision)"
+                echo -e " ${GREEN}4.${NC} VLESS gRPC Reality"
+                echo -e " ${GREEN}5.${NC} VLESS WS TLS"
                 read -p "Chọn giao thức (1-5): " proto_choice
                 
                 proto=""
@@ -129,21 +148,42 @@ while true; do
                     3) proto="vless-reality" ;;
                     4) proto="vless-grpc-reality" ;;
                     5) proto="vless-ws-tls" ;;
-                    *) echo -e "${RED}Lựa chọn sai!${NC}"; sleep 1; continue ;;
+                    *) echo -e "${RED}[LỖI] Lựa chọn không hợp lệ!${NC}"; sleep 1; continue ;;
                 esac
 
-                read -p "Nhập Port (Để trống tự động chọn ngẫu nhiên 2000-6000): " port
-                if [[ -z "$port" ]]; then
-                    port=$(get_random_unused_port)
-                    info "Đã tự động chọn port ngẫu nhiên: $port"
-                fi
+                # Nhập Port và kiểm tra trùng lặp
+                while true; do
+                    read -p "Nhập Port (Để trống tự động chọn ngẫu nhiên 2000-6000): " port
+                    if [[ -z "$port" ]]; then
+                        port=$(get_random_unused_port)
+                        info "Đã tự động chọn port ngẫu nhiên chưa dùng: $port"
+                        break
+                    elif [[ "$port" =~ ^[0-9]+$ ]] && (( port >= 1 && port <= 65535 )); then
+                        if jq -e --argjson p "$port" '.[] | select(.port == $p)' "$DATA_DIR/nodes.json" &>/dev/null; then
+                            echo -e "${RED}[LỖI] Port $port đã trùng với node khác trong hệ thống! Vui lòng chọn port khác.${NC}"
+                        else
+                            break
+                        fi
+                    else
+                        echo -e "${RED}[LỖI] Port không hợp lệ! Vui lòng nhập số từ 1 đến 65535.${NC}"
+                    fi
+                done
 
-                read -p "Nhập Tag/Tên node (Để trống tự động theo quốc gia + port): " tag
-                if [[ -z "$tag" ]]; then
-                    cc=$(get_country_code)
-                    tag="${cc}-${port}"
-                    info "Đã tự động tạo Tag: $tag"
-                fi
+                # Nhập Tag và kiểm tra trùng lặp
+                while true; do
+                    read -p "Nhập Tag/Tên node (Để trống tự động theo quốc gia + port): " tag
+                    if [[ -z "$tag" ]]; then
+                        cc=$(get_country_code)
+                        tag="${cc}-${port}"
+                        info "Đã tự động tạo Tag: $tag"
+                    fi
+
+                    if jq -e --arg t "$tag" '.[] | select(.tag == $t)' "$DATA_DIR/nodes.json" &>/dev/null; then
+                        echo -e "${RED}[LỖI] Tag '$tag' đã tồn tại trong hệ thống! Vui lòng chọn Tag khác.${NC}"
+                    else
+                        break
+                    fi
+                done
 
                 vps_ip=$(curl -s4 icanhazip.com 2>/dev/null)
 
@@ -312,16 +352,16 @@ while true; do
                 
                 # Tự động mở cổng tường lửa
                 open_port "$port" "$proto"
-                success "Đã thêm giao thức [${tag}] và mở cổng ${port} thành công!"
+                success "Đã thêm giao thức [${tag}] trên cổng ${port} thành công!"
 
                 echo ""
-                read -p "Bạn có muốn thêm giao thức khác không? (Nhấn 'y' để tiếp tục, 'n' để dừng và lưu): " continue_add
+                read -p "Bạn có muốn thêm giao thức khác không? (y/N): " continue_add
                 if [[ "$continue_add" != "y" && "$continue_add" != "Y" ]]; then
                     break
                 fi
             done
 
-            info "Đang tiến hành build lại cấu hình và khởi động Sing-box..."
+            info "Đang tiến hành tạo cấu hình và khởi động lại Sing-box..."
             build_config_json
             restart_singbox
             success "Đã cập nhật toàn bộ cấu hình node thành công!"
@@ -329,22 +369,24 @@ while true; do
             ;;
         2)
             clear
-            echo -e "${CYAN}--- SỬA NODE ---${NC}"
+            echo -e "${CYAN}-------------------------------------------------${NC}"
+            echo -e "${CYAN}                    SỬA NODE                     ${NC}"
+            echo -e "${CYAN}-------------------------------------------------${NC}"
             count=$(jq '. | length' "$DATA_DIR/nodes.json" 2>/dev/null || echo 0)
             if [[ "$count" -eq 0 ]]; then
-                echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
+                echo -e "${YELLOW}[!] Chưa có node nào được tạo.${NC}"
                 read -p "Nhấn Enter để tiếp tục..."
                 continue
             fi
             
             for (( i=0; i<$count; i++ )); do
-                local display_num=$((i+1))
+                display_num=$((i+1))
                 t=$(jq -r ".[$i].tag" "$DATA_DIR/nodes.json")
                 p=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
                 prt=$(jq -r ".[$i].port" "$DATA_DIR/nodes.json")
-                echo " [$display_num] Tag: $t | Protocol: $p | Port: $prt"
+                echo -e " [${GREEN}$display_num${NC}] Tag: $t | Protocol: $p | Port: $prt"
             done
-            echo " [0] Hủy bỏ"
+            echo -e " [${RED}0${NC}] Hủy bỏ"
             
             read -p "Nhập số thứ tự node muốn sửa (1-$count, 0 để hủy): " edit_idx
             if [[ "$edit_idx" == "0" ]]; then
@@ -352,32 +394,46 @@ while true; do
             fi
             
             if [[ "$edit_idx" =~ ^[0-9]+$ ]] && (( edit_idx > 0 && edit_idx <= count )); then
-                local real_idx=$((edit_idx-1))
-                local old_port=$(jq -r ".[$real_idx].port" "$DATA_DIR/nodes.json")
-                local old_proto=$(jq -r ".[$real_idx].protocol" "$DATA_DIR/nodes.json")
-                local old_tag=$(jq -r ".[$real_idx].tag" "$DATA_DIR/nodes.json")
+                real_idx=$((edit_idx-1))
+                old_port=$(jq -r ".[$real_idx].port" "$DATA_DIR/nodes.json")
+                old_proto=$(jq -r ".[$real_idx].protocol" "$DATA_DIR/nodes.json")
+                old_tag=$(jq -r ".[$real_idx].tag" "$DATA_DIR/nodes.json")
                 
                 echo -e "${CYAN}Đang sửa node: $old_tag ($old_proto trên port $old_port)${NC}"
-                echo "Để trống nếu muốn giữ nguyên giá trị cũ."
+                echo "Nhấn Enter nếu muốn giữ nguyên giá trị cũ."
 
+                # Sửa Port có kiểm tra trùng lặp
                 read -p "Nhập Port mới [$old_port]: " new_port
-                [[ -z "$new_port" ]] && new_port="$old_port"
+                if [[ -n "$new_port" && "$new_port" != "$old_port" ]]; then
+                    if jq -e --argjson p "$new_port" '.[] | select(.port == $p)' "$DATA_DIR/nodes.json" &>/dev/null; then
+                        echo -e "${RED}[LỖI] Port $new_port đã được sử dụng ở node khác! Giữ nguyên port cũ ($old_port).${NC}"
+                        new_port="$old_port"
+                    fi
+                else
+                    new_port="$old_port"
+                fi
 
+                # Sửa Tag có kiểm tra trùng lặp
                 read -p "Nhập Tag mới [$old_tag]: " new_tag
-                [[ -z "$new_tag" ]] && new_tag="$old_tag"
+                if [[ -n "$new_tag" && "$new_tag" != "$old_tag" ]]; then
+                    if jq -e --arg t "$new_tag" '.[] | select(.tag == $t)' "$DATA_DIR/nodes.json" &>/dev/null; then
+                        echo -e "${RED}[LỖI] Tag '$new_tag' đã được sử dụng ở node khác! Giữ nguyên tag cũ ($old_tag).${NC}"
+                        new_tag="$old_tag"
+                    fi
+                else
+                    new_tag="$old_tag"
+                fi
 
-                local old_sni=$(jq -r ".[$real_idx].server_name // empty" "$DATA_DIR/nodes.json")
+                old_sni=$(jq -r ".[$real_idx].server_name // empty" "$DATA_DIR/nodes.json")
                 read -p "Nhập SNI/Domain mới [$old_sni]: " new_sni
                 [[ -z "$new_sni" ]] && new_sni="$old_sni"
 
-                # Cập nhật thông số vào node hiện tại qua jq
                 jq --argjson idx "$real_idx" --argjson port "$new_port" --arg tag "$new_tag" --arg sni "$new_sni" '
                     .[$idx].port = $port |
                     .[$idx].tag = $tag |
                     .[$idx].server_name = $sni
                 ' "$DATA_DIR/nodes.json" > "$DATA_DIR/nodes.json.tmp" && mv "$DATA_DIR/nodes.json.tmp" "$DATA_DIR/nodes.json"
 
-                # Đóng cổng cũ, mở cổng mới nếu thay đổi port hoặc giao thức
                 if [[ "$old_port" != "$new_port" ]]; then
                     close_port "$old_port" "$old_proto"
                     open_port "$new_port" "$old_proto"
@@ -393,22 +449,24 @@ while true; do
             ;;
         3)
             clear
-            echo -e "${CYAN}--- XÓA NODE ---${NC}"
+            echo -e "${CYAN}-------------------------------------------------${NC}"
+            echo -e "${CYAN}                    XÓA NODE                     ${NC}"
+            echo -e "${CYAN}-------------------------------------------------${NC}"
             count=$(jq '. | length' "$DATA_DIR/nodes.json" 2>/dev/null || echo 0)
             if [[ "$count" -eq 0 ]]; then
-                echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
+                echo -e "${YELLOW}[!] Chưa có node nào được tạo.${NC}"
                 read -p "Nhấn Enter để tiếp tục..."
                 continue
             fi
             
             for (( i=0; i<$count; i++ )); do
-                local display_num=$((i+1))
+                display_num=$((i+1))
                 t=$(jq -r ".[$i].tag" "$DATA_DIR/nodes.json")
                 p=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
                 prt=$(jq -r ".[$i].port" "$DATA_DIR/nodes.json")
-                echo " [$display_num] Tag: $t | Protocol: $p | Port: $prt"
+                echo -e " [${GREEN}$display_num${NC}] Tag: $t | Protocol: $p | Port: $prt"
             done
-            echo " [0] Hủy bỏ"
+            echo -e " [${RED}0${NC}] Hủy bỏ"
             
             read -p "Nhập số thứ tự node muốn xóa (1-$count, 0 để hủy): " idx
             if [[ "$idx" == "0" ]]; then
@@ -416,7 +474,7 @@ while true; do
             fi
             
             if [[ "$idx" =~ ^[0-9]+$ ]] && (( idx > 0 && idx <= count )); then
-                local real_idx=$((idx-1))
+                real_idx=$((idx-1))
                 del_tag=$(jq -r ".[$real_idx].tag" "$DATA_DIR/nodes.json")
                 del_port=$(jq -r ".[$real_idx].port" "$DATA_DIR/nodes.json")
                 del_proto=$(jq -r ".[$real_idx].protocol" "$DATA_DIR/nodes.json")
@@ -427,12 +485,11 @@ while true; do
                     jq --arg tag "$del_tag" '[.[] | select(.tag != $tag)]' "$DATA_DIR/domain.json" > "$DATA_DIR/domain.json.tmp" && mv "$DATA_DIR/domain.json.tmp" "$DATA_DIR/domain.json"
                 fi
 
-                # Đóng cổng tường lửa tương ứng
                 close_port "$del_port" "$del_proto"
 
                 build_config_json
                 restart_singbox
-                success "Đã xóa node và đóng cổng ${del_port} thành công!"
+                success "Đã xóa node [$del_tag] và đóng cổng ${del_port} thành công!"
             else
                 echo -e "${RED}[LỖI] Số thứ tự không hợp lệ!${NC}"
             fi
@@ -445,7 +502,7 @@ while true; do
             nodes_count=$(jq '. | length' "$DATA_DIR/nodes.json" 2>/dev/null || echo 0)
             
             if [[ "$nodes_count" -eq 0 ]]; then
-                echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
+                echo -e "${YELLOW}[!] Chưa có node nào được tạo.${NC}"
                 read -p "Nhấn Enter để tiếp tục..."
                 continue
             fi
@@ -454,10 +511,11 @@ while true; do
                 uname=$(jq -r ".[$u].name" "$DATA_DIR/users.json")
                 uuuid=$(jq -r ".[$u].uuid" "$DATA_DIR/users.json")
                 
-                echo -e "${BLUE}=================================================${NC}"
-                echo -e "${YELLOW}   DANH SÁCH LINK KẾT NỐI ${NC}"
-                echo -e "${BLUE}=================================================${NC}"
-                echo -e "${YELLOW}User:${NC} ${GREEN}${uname}${NC}"
+                echo -e "${BLUE}=================================================================================================${NC}"
+                echo -e "${GREEN}                                    DANH SÁCH LINK KẾT NỐI                                     ${NC}"
+                echo -e "${BLUE}=================================================================================================${NC}"
+                echo -e " User: ${GREEN}${uname}${NC}"
+                echo -e "${BLUE}-------------------------------------------------------------------------------------------------${NC}"
 
                 for (( i=0; i<$nodes_count; i++ )); do
                     protocol=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
@@ -471,7 +529,7 @@ while true; do
                     link=$(build_link "$protocol" "$uuuid" "$vps_ip" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service")
                     
                     echo -e "${GREEN}${link}${NC}"
-                    echo -e "-------------------------------------------------"
+                    echo -e "-------------------------------------------------------------------------------------------------"
                 done
             done
             read -p "Nhấn Enter để tiếp tục..."
