@@ -241,11 +241,11 @@ while true; do
                         key_path=$(echo "$cert_info" | cut -d'|' -f2)
 
                         if [[ "$proto" == "hysteria2" ]]; then
-                            read -p "Nhập tốc độ Upload (Mbps) (Để trống mặc định 1000): " up_mbps
-                            [[ -z "$up_mbps" ]] && up_mbps="1000"
+                            read -p "Nhập tốc độ Upload: " up_mbps
+                            [[ -z "$up_mbps" ]] && up_mbps="100"
                             
-                            read -p "Nhập tốc độ Download (Mbps) (Để trống mặc định 1000): " down_mbps
-                            [[ -z "$down_mbps" ]] && down_mbps="1000"
+                            read -p "Nhập tốc độ Download: " down_mbps
+                            [[ -z "$down_mbps" ]] && down_mbps="100"
                         fi
                         ;;
                 esac
@@ -529,9 +529,10 @@ while true; do
                     link=$(build_link "$protocol" "$uuuid" "$vps_ip" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service")
                     
                     echo -e "${GREEN}${link}${NC}"
-                    echo -e "-------------------------------------------------------------------------------------------------"
+                    
                 done
             done
+            echo -e "-------------------------------------------------------------------------------------------------"
             read -p "Nhấn Enter để tiếp tục..."
             ;;
         0)
