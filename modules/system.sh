@@ -13,7 +13,7 @@ while true; do
     echo -e "${BLUE}===============================================================${NC}"
     echo -e "${YELLOW}              QUẢN LÝ HỆ THỐNG SING-BOX${NC}"
     echo -e "${BLUE}===============================================================${NC}"
-    echo -e " Trạng thái hiện tại : $(check_singbox_status) | Phiên bản Sing-box : $(/usr/local/bin/sing-box version 2>/dev/null | grep -i "version" | awk '{print $3}')"
+    echo -e " Trạng thái hiện tại : $(check_singbox_status) | Phiên bản Sing-box : ${GREEN}$(/usr/local/bin/sing-box version 2>/dev/null | grep -i "version" | awk '{print $3}')${NC}"
     echo -e "${BLUE}===============================================================${NC}"
     echo -e "${GREEN} 1.${NC} Khởi động Sing-box"
     echo -e "${GREEN} 2.${NC} Dừng Sing-box"
