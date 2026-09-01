@@ -38,13 +38,15 @@ info() {
 # =================== XỬ LÝ PORT NGẪU NHIÊN ===================
 
 # Lấy ngẫu nhiên một port trống từ 2000 đến 6000
-# Áp dụng cho logic: Nếu người dùng để trống khi nhập port thì sẽ tự lấy port này
 get_random_unused_port() {
     while true; do
-        # RANDOM trả về 0-32767. Lấy module 4001 cộng 2000 sẽ ra dải 2000-6000
         local check_port=$((RANDOM % 4001 + 2000))
-        # Dùng netcat kiểm tra port. Nếu lệnh lỗi (nghĩa là port chưa mở/chưa bị chiếm), break loop
-        if ! nc -z -w1 127.0.0.1 $check_port 2>/dev/null; then
+        if command -v ss >/dev/null 2>&1; then
+            if ! ss -tuln | grep -qE ":$check_port\b"; then
+                echo "$check_port"
+                break
+            fi
+        elif ! nc -z -w1 127.0.0.1 "$check_port" 2>/dev/null; then
             echo "$check_port"
             break
         fi
@@ -97,26 +99,27 @@ build_config_json() {
     local config_out="$DATA_DIR/config.json"
     
     # Reset config về base
-    cp "$TPL_DIR/config.base.json" "$config_out"
+    if [[ -f "$TPL_DIR/config.base.json" ]]; then
+        cp "$TPL_DIR/config.base.json" "$config_out"
+    else
+        echo '{"inbounds":[]}' > "$config_out"
+    fi
     
     if [[ ! -f "$DATA_DIR/nodes.json" ]] || [[ ! -f "$DATA_DIR/users.json" ]]; then
         echo -e "${YELLOW}Chưa có dữ liệu nodes.json hoặc users.json. Bỏ qua việc build inbounds.${NC}"
         return
     fi
 
-    # Mảng tạm chứa toàn bộ inbounds
     local inbounds_tmp=$(mktemp)
     echo "[]" > "$inbounds_tmp"
     
-    # Đọc số lượng node
-    local nodes_count=$(jq '. | length' "$DATA_DIR/nodes.json")
+    local nodes_count=$(jq '. | length' "$DATA_DIR/nodes.json" 2>/dev/null || echo 0)
     
     for (( i=0; i<$nodes_count; i++ )); do
         local protocol=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
         local node_json=$(jq ".[$i]" "$DATA_DIR/nodes.json")
         local tpl_file=""
         
-        # Ánh xạ giao thức với file template
         case "$protocol" in
             "hysteria2") tpl_file="$TPL_DIR/inbound_hy2.json" ;;
             "tuic") tpl_file="$TPL_DIR/inbound_tuic.json" ;;
@@ -127,33 +130,28 @@ build_config_json() {
         esac
 
         if [[ -f "$tpl_file" ]]; then
-            # Format object users.json cho tương thích từng giao thức
             local users_tmp=$(mktemp)
             if [[ "$protocol" == "vless-reality" ]]; then
-                # TCP Vision cần flow
-                jq '[.[] | {uuid: .uuid, flow: "xtls-rprx-vision", name: .name}]' "$DATA_DIR/users.json" > "$users_tmp"
+                jq '[.[] | {uuid: .uuid, flow: "xtls-rprx-vision", name: (.username // .name)}]' "$DATA_DIR/users.json" > "$users_tmp"
             elif [[ "$protocol" == "vless-grpc-reality" || "$protocol" == "vless-ws-tls" ]]; then
-                jq '[.[] | {uuid: .uuid, name: .name}]' "$DATA_DIR/users.json" > "$users_tmp"
+                jq '[.[] | {uuid: .uuid, name: (.username // .name)}]' "$DATA_DIR/users.json" > "$users_tmp"
             elif [[ "$protocol" == "hysteria2" ]]; then
-                jq '[.[] | {password: .uuid, name: .name}]' "$DATA_DIR/users.json" > "$users_tmp"
+                jq '[.[] | {password: .uuid, name: (.username // .name)}]' "$DATA_DIR/users.json" > "$users_tmp"
             elif [[ "$protocol" == "tuic" ]]; then
-                jq '[.[] | {uuid: .uuid, password: .uuid, name: .name}]' "$DATA_DIR/users.json" > "$users_tmp"
+                jq '[.[] | {uuid: .uuid, password: (.password // .uuid), name: (.username // .name)}]' "$DATA_DIR/users.json" > "$users_tmp"
             fi
 
-            # Merge template cùng thông số node (port, tls, reality, cert, grpc)
             local node_tmp=$(mktemp)
             jq --argjson node "$node_json" --slurpfile users "$users_tmp" '
                 .tag = $node.tag |
                 .listen_port = ($node.port | tonumber) |
                 .users = $users[0] |
                 
-                # Đọc trực tiếp tốc độ từ nodes.json, nếu trống mặc định 1000
                 if .type == "hysteria2" then
                     .up_mbps = (if $node.up_mbps != null then ($node.up_mbps | tonumber) else 1000 end) |
                     .down_mbps = (if $node.down_mbps != null then ($node.down_mbps | tonumber) else 1000 end)
                 else . end |
                 
-                # Cấu hình TLS / Reality
                 if .tls != null then
                     if .tls.reality != null and .tls.reality.enabled == true then
                         .tls.server_name = $node.server_name |
@@ -169,25 +167,20 @@ build_config_json() {
                     end
                 else . end |
                 
-                # Cấu hình Transport
                 if .transport != null then
                     if .transport.type == "grpc" then
                         .transport.service_name = $node.service_name
                     elif .transport.type == "ws" then
-                        .transport.path = "/"
+                        .transport.path = (if $node.ws_path != null then $node.ws_path else "/" end)
                     else . end
                 else . end
             ' "$tpl_file" > "$node_tmp"
 
-            # Đẩy inbound vừa build xong vào mảng inbounds_tmp một cách an toàn
             jq --slurpfile new_node "$node_tmp" '. + $new_node' "$inbounds_tmp" > "${inbounds_tmp}.tmp" && mv "${inbounds_tmp}.tmp" "$inbounds_tmp"
-            
-            # Xoá file rác
             rm -f "$node_tmp" "$users_tmp"
         fi
     done
 
-    # Ghi đè mảng inbounds vào file config.json chính thức
     jq --slurpfile inbounds "$inbounds_tmp" '.inbounds = $inbounds[0]' "$config_out" > "${config_out}.tmp" && mv "${config_out}.tmp" "$config_out"
     rm -f "$inbounds_tmp"
     
@@ -206,6 +199,7 @@ build_link() {
     local pbk="$7"
     local sid="$8"
     local grpc_service="$9"
+    local ws_path="${10:-/}"
     
     local link=""
     
@@ -223,7 +217,7 @@ build_link() {
             link="vless://${uuid}@${vps_ip}:${port}?security=reality&encryption=none&pbk=${pbk}&fp=chrome&type=grpc&serviceName=${grpc_service}&sni=${sni}&sid=${sid}#${tag}"
             ;;
         "vless-ws-tls")
-            link="vless://${uuid}@${vps_ip}:${port}?security=tls&encryption=none&type=ws&path=/&sni=${sni}#${tag}"
+            link="vless://${uuid}@${vps_ip}:${port}?security=tls&encryption=none&type=ws&path=${ws_path}&sni=${sni}#${tag}"
             ;;
     esac
     
