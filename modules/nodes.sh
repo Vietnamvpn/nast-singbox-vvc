@@ -102,11 +102,11 @@ while true; do
     echo -e "${BLUE}=================================================${NC}"
     echo -e "${YELLOW}            QUẢN LÝ NODE & KẾT NỐI${NC}"
     echo -e "${BLUE}=================================================${NC}"
-    echo -e "${GREEN} 1.${NC} Thêm Node mới"
-    echo -e "${GREEN} 2.${NC} Sửa Node"
-    echo -e "${GREEN} 3.${NC} Xóa Node"
-    echo -e "${GREEN} 4.${NC} Hiển thị danh sách Link kết nối"
-    echo -e "${GREEN} 0.${NC} Quay lại menu chính"
+    echo -e "${GREEN} 1.${NC} Thêm Giao Thức Mới"
+    echo -e "${GREEN} 2.${NC} Cập Nhật Giao Thức"
+    echo -e "${GREEN} 3.${NC} Xóa Giao Thức"
+    echo -e "${GREEN} 4.${NC} Hiển Thị Link Kết Nối"
+    echo -e "${RED} 0.${NC} Quay lại menu chính"
     echo -e "${BLUE}=================================================${NC}"
     read -p "Nhập lựa chọn của bạn: " node_choice
 
