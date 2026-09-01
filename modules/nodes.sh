@@ -708,11 +708,47 @@ delete_node() {
         return
     fi
     
-    read -p " Nhập số thứ tự node cần xóa, 0 để hủy: " node_idx
-    if [ -z "$node_idx" ] || [ "$node_idx" -eq 0 ]; then
+    read -p " Nhập số thứ tự node cần xóa [Để trống = XÓA TẤT CẢ, 0 = Hủy]: " node_idx
+
+    # Nhập 0 -> Hủy
+    if [ "$node_idx" = "0" ]; then
         return
     fi
 
+    # Để trống -> Xóa tất cả node
+    if [ -z "$node_idx" ]; then
+        read -p " XÁC NHẬN: Bạn có chắc chắn muốn XÓA TẤT CẢ các node? (y/N): " confirm_all
+        if [[ "$confirm_all" =~ ^[Yy]$ ]]; then
+            if command -v jq &> /dev/null; then
+                # Đóng toàn bộ port tường lửa của các node đang hoạt động
+                local count
+                count=$(jq '. | length' "$NODES_FILE" 2>/dev/null || echo 0)
+                for (( i=0; i<$count; i++ )); do
+                    local port
+                    port=$(jq -r ".[$i].port // empty" "$NODES_FILE")
+                    if [ -n "$port" ] && [[ "$port" =~ ^[0-9]+$ ]]; then
+                        close_firewall_port "$port"
+                    fi
+                done
+
+                # Reset các file dữ liệu về mảng rỗng
+                echo "[]" > "$NODES_FILE"
+                echo "[]" > "$DOMAIN_FILE"
+                
+                echo -e "${GREEN}Đã xóa TẤT CẢ các node thành công!${NC}"
+                build_config_json
+                restart_singbox
+            else
+                echo -e "${RED}Thiếu công cụ jq để xử lý JSON.${NC}"
+            fi
+        else
+            echo -e "${YELLOW}Đã hủy thao tác xóa tất cả.${NC}"
+        fi
+        sleep 2
+        return
+    fi
+
+    # Nhập số thứ tự cụ thể -> Xóa 1 node
     local real_idx=$((node_idx - 1))
     local node_tag
     local node_port
@@ -749,7 +785,7 @@ while true; do
     echo -e "${BLUE}================================================================${NC}"
     echo -e "${BLUE}||${NC}                    ${YELLOW}QUẢN LÝ THÔNG TIN NODE                  ${BLUE}||${NC}"
     echo -e "${BLUE}================================================================${NC}"
-    echo -e " ${GREEN}1.${NC} Hiển thị danh sách Link kết nối"
+    echo -e " ${GREEN}1.${NC} Danh sách Link kết nối"
     echo -e " ${GREEN}2.${NC} Thêm Node mới"
     echo -e " ${GREEN}3.${NC} Cập nhật Node"
     echo -e " ${GREEN}4.${NC} Xóa Node"

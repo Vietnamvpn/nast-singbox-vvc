@@ -209,7 +209,7 @@ build_link() {
             link="hysteria2://${uuid}@${vps_ip}:${port}/?sni=${sni}&insecure=1#${tag}"
             ;;
         "tuic")
-            link="tuic://${uuid}:${pass}@${vps_ip}:${port}/?sni=${sni}&congestion_control=bbr&alpn=h3#${tag}"
+            link="tuic://${uuid}:${pass}@${vps_ip}:${port}/?sni=${sni}&congestion_control=bbr&alpn=h3&allow_insecure=1&insecure=1#${tag}"
             ;;
         "vless-reality")
             link="vless://${uuid}@${vps_ip}:${port}?security=reality&encryption=none&pbk=${pbk}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=${sni}&sid=${sid}#${tag}"
@@ -218,7 +218,7 @@ build_link() {
             link="vless://${uuid}@${vps_ip}:${port}?security=reality&encryption=none&pbk=${pbk}&fp=chrome&type=grpc&serviceName=${grpc_service}&sni=${sni}&sid=${sid}#${tag}"
             ;;
         "vless-ws-tls")
-            link="vless://${uuid}@${vps_ip}:${port}?security=tls&encryption=none&type=ws&path=${ws_path}&sni=${sni}#${tag}"
+            link="vless://${uuid}@${vps_ip}:${port}?security=tls&encryption=none&type=ws&path=${ws_path}&sni=${sni}&allowInsecure=1&insecure=1#${tag}"
             ;;
     esac
     
