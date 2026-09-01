@@ -88,7 +88,7 @@ check_singbox_status() {
         echo -e "${GREEN}ĐANG CHẠY${NC}"
         # Hiển thị thêm thông tin chi tiết uptime nếu service đang chạy
         local uptime_info=$(systemctl show sing-box --property=ActiveEnterTimestamp 2>/dev/null)
-        echo -e "${CYAN}Thông tin: $uptime_info${NC}"
+        echo -e " ${CYAN}Thông tin: $uptime_info${NC}"
     else
         echo -e "${RED}ĐÃ DỪNG${NC}"
     fi

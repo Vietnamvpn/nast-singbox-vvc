@@ -13,9 +13,9 @@ while true; do
     echo -e "${BLUE}=================================================${NC}"
     echo -e "${YELLOW}           XIN CHỨNG CHỈ SSL CLOUDFLARE${NC}"
     echo -e "${BLUE}=================================================${NC}"
-    echo -e "${GREEN} 1.${NC} Đăng ký chứng chỉ SSL qua Cloudflare API (DNS-01)"
+    echo -e "${GREEN} 1.${NC} Đăng ký chứng chỉ SSL qua Cloudflare"
     echo -e "${GREEN} 2.${NC} Xem danh sách chứng chỉ hiện có"
-    echo -e "${GREEN} 0.${NC} Quay lại menu chính"
+    echo -e "${RED} 0.${NC} Quay lại menu chính"
     echo -e "${BLUE}=================================================${NC}"
     read -p "Nhập lựa chọn của bạn: " ssl_choice
 
