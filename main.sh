@@ -30,14 +30,9 @@ uninstall_system() {
     echo -e "${BLUE}=================================================${NC}"
     echo -e "${BLUE}||${NC}     ${RED}CẢNH BÁO: GỠ CÀI ĐẶT TOÀN BỘ HỆ THỐNG${NC}   ${BLUE}||${NC}"
     echo -e "${BLUE}=================================================${NC}"
-    echo -e "${YELLOW}Thao tác này sẽ xoá TOÀN BỘ:${NC}"
-    echo -e " 1. Mã nguồn quản lý."
-    echo -e " 2. Database (User, Nodes, Cấu hình)."
-    echo -e " 3. Chứng chỉ SSL."
-    echo -e " 4. Lõi Sing-box core."
+    echo -e "${YELLOW}Thao tác này sẽ xoá toàn bộ dữ liệu và cấu hình.${NC}"
     echo -e "${RED}DỮ LIỆU SẼ KHÔNG THỂ KHÔI PHỤC!${NC}"
-    echo -e "${BLUE}=================================================${NC}"
-    
+    echo -e ""
     read -p "Bạn có CHẮC CHẮN muốn xoá toàn bộ? (y/N): " confirm_1
     if [[ "$confirm_1" != "y" && "$confirm_1" != "Y" ]]; then
         info "Đã huỷ thao tác gỡ cài đặt."
