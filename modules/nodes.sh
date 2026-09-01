@@ -517,10 +517,16 @@ add_node_menu() {
 }
 
 list_nodes() {
+    local mode="${1:-raw}"
     clear
     echo -e "${BLUE}================================================================${NC}"
-    echo -e "${BLUE}||${NC}                   ${YELLOW}DANH SÁCH LINK KẾT NỐI                   ${BLUE}||${NC}"
+    if [ "$mode" = "select" ]; then
+        echo -e "${BLUE}||${NC}                   ${YELLOW}DANH SÁCH NODE HIỆN CÓ                   ${BLUE}||${NC}"
+    else
+        echo -e "${BLUE}||${NC}                   ${YELLOW}DANH SÁCH LINK KẾT NỐI                   ${BLUE}||${NC}"
+    fi
     echo -e "${BLUE}================================================================${NC}"
+
     if [ ! -s "$NODES_FILE" ] || [ "$(cat "$NODES_FILE")" = "[]" ]; then
         echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
         echo -e "${CYAN}================================================================${NC}"
@@ -550,9 +556,13 @@ list_nodes() {
         local user_id="${default_uuid:-$node_uuid}"
         [ -z "$user_id" ] && user_id="12345678-1234-1234-1234-123456789abc"
 
-        local link
-        link=$(build_link "$protocol" "$user_id" "$domain" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service" "$ws_path")      
-        echo -e " ${BLUE}$link${NC}"
+        if [ "$mode" = "select" ]; then
+            echo -e " ${GREEN}$((i + 1)).${NC} ${YELLOW}[$tag]${NC} (${CYAN}$protocol${NC}) - $domain:$port"
+        else
+            local link
+            link=$(build_link "$protocol" "$user_id" "$domain" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service" "$ws_path")
+            echo -e "$link"
+        fi
     done
 
     echo -e "${CYAN}================================================================${NC}"
@@ -561,7 +571,7 @@ list_nodes() {
 
 update_node() {
     clear
-    if ! list_nodes; then
+    if ! list_nodes "select"; then
         sleep 2
         return
     fi
@@ -647,7 +657,7 @@ update_node() {
 
 delete_node() {
     clear
-    if ! list_nodes; then
+    if ! list_nodes "select"; then
         sleep 2
         return
     fi
@@ -703,7 +713,7 @@ while true; do
 
     case $choice in
         1)
-            list_nodes
+            list_nodes "raw"
             read -n 1 -s -r -p "Nhấn phím bất kỳ để tiếp tục..."
             ;;
         2)
