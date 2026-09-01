@@ -28,7 +28,7 @@ fi
 uninstall_system() {
     clear
     echo -e "${RED}=================================================${NC}"
-    echo -e "${RED}       CẢNH BÁO: GỠ CÀI ĐẶT TOÀN BỘ HỆ THỐNG     ${NC}"
+    echo -e "${RED}||     CẢNH BÁO: GỠ CÀI ĐẶT TOÀN BỘ HỆ THỐNG   ||${NC}"
     echo -e "${RED}=================================================${NC}"
     echo -e "${YELLOW}Thao tác này sẽ xoá TOÀN BỘ:${NC}"
     echo -e " 1. Mã nguồn quản lý."
@@ -74,7 +74,7 @@ while true; do
     SYS_STATUS=$(check_singbox_status | grep -v "Thông tin:" | head -n 1)
 
     echo -e "${BLUE}=============================================================================${NC}"
-    echo -e "${GREEN}                               MENU NAST SING-BOX VVC                       ${NC}"
+    echo -e "${GREEN}||                             MENU NAST SING-BOX VVC                     ||${NC}"
     echo -e "${BLUE}=============================================================================${NC}"
     echo -e " ${GREEN}Tác giả${NC}: Vietnamvpn    | ${GREEN}Singbox core${NC}: ${CORE_VER}"
     echo -e " ${GREEN}Trạng thái${NC} : ${SYS_STATUS} | ${GREEN}Trang web${NC}  : https://linksub24h.com"
