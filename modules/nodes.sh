@@ -2,7 +2,7 @@
 
 # =========================================================
 # File: modules/nodes.sh
-# Chức năng: Quản lý nodes (Giao diện & luồng nhập/sửa/xóa y chang file mẫu nodes_2.sh)
+# Chức năng: Quản lý nodes
 # =========================================================
 
 BASE_DIR="/root/nast-singbox-vvc"
@@ -173,46 +173,11 @@ ask_tag() {
 ASKED_CERT=""
 ASKED_KEY=""
 ask_cert() {
-    echo -e "${YELLOW} Đang quét các chứng chỉ (Certificate) có sẵn trong hệ thống...${NC}"
-    local cert_list=()
-    local key_list=()
-    
-    cert_list+=("$BASE_DIR/certs/cert.crt")
-    key_list+=("$BASE_DIR/certs/cert.key")
-    
-    if [ -f "/etc/sing-box/certs/fullchain.pem" ] && [ -f "/etc/sing-box/certs/private.key" ]; then
-        cert_list+=("/etc/sing-box/certs/fullchain.pem")
-        key_list+=("/etc/sing-box/certs/private.key")
-    fi
-
-    echo -e "${CYAN}================================================================${NC}"
-    echo -e "${BLUE}                 DANH SÁCH CHỨNG CHỈ KHẢ DỤNG                   ${NC}"
-    echo -e "${CYAN}================================================================${NC}"
-    for i in "${!cert_list[@]}"; do
-        echo -e " ${GREEN}$((i + 1)).${NC} Cert: ${cert_list[$i]}"
-        echo -e "    Key: ${key_list[$i]}"
-    done
-    echo -e " ${GREEN}0.${NC} Tự nhập đường dẫn thủ công"
-    echo -e "${CYAN}================================================================${NC}"
-    
-    read -p " Vui lòng chọn số thứ tự chứng chỉ [Mặc định 1]: " cert_choice
-    cert_choice="${cert_choice:-1}"
-    
-    if [ "$cert_choice" -eq 0 ]; then
-        read -p " Nhập đường dẫn Certificate: " ASKED_CERT
-        read -p " Nhập đường dẫn Private Key: " ASKED_KEY
-    elif [[ "$cert_choice" =~ ^[0-9]+$ ]] && [ "$cert_choice" -ge 1 ] && [ "$cert_choice" -le "${#cert_list[@]}" ]; then
-        local idx=$((cert_choice - 1))
-        ASKED_CERT="${cert_list[$idx]}"
-        ASKED_KEY="${key_list[$idx]}"
-    else
-        ASKED_CERT="${cert_list[0]}"
-        ASKED_KEY="${key_list[0]}"
-        echo -e "${YELLOW} Lựa chọn không hợp lệ, dùng chứng chỉ mặc định: $ASKED_CERT${NC}"
-    fi
-    
-    echo -e "${GREEN} -> Cert: $ASKED_CERT${NC}"
-    echo -e "${GREEN} -> Key: $ASKED_KEY${NC}"
+    ASKED_CERT="$BASE_DIR/certs/cert.crt"
+    ASKED_KEY="$BASE_DIR/certs/private.key"
+    echo -e "${GREEN} -> Sử dụng chứng chỉ mặc định:${NC}"
+    echo -e "${GREEN}    Cert: $ASKED_CERT${NC}"
+    echo -e "${GREEN}    Key:  $ASKED_KEY${NC}"
 }
 
 check_tag_exists() {
@@ -352,7 +317,7 @@ form_vless_ws_tls() {
            "port": $port,
            "domain": $domain,
            "server_name": $server_name,
-           "ws_path": $ws_path,
+           "ws_path": $auto_ws_path,
            "cert_path": $cert_path,
            "key_path": $key_path
        }]' "$NODES_FILE" > "$NODES_FILE.tmp" && mv "$NODES_FILE.tmp" "$NODES_FILE"
@@ -496,8 +461,10 @@ form_tuic() {
 }
 
 add_node_menu() {
+    local has_added=0
     while true; do
         clear
+        ASKED_TAG=""
         echo -e "${BLUE}================================================================${NC}"
         echo -e "${BLUE}||${NC}                 ${YELLOW}CHỌN GIAO THỨC CHO NODE${NC}                    ${BLUE}||${NC}"
         echo -e "${BLUE}================================================================${NC}"
@@ -524,39 +491,74 @@ add_node_menu() {
                 ;;
         esac
 
-        build_config_json
-        restart_singbox
+        if [ -n "$ASKED_TAG" ]; then
+            has_added=1
+        fi
 
         read -p " Bạn có muốn thêm giao thức nữa không? (y/n): " add_more
         if [[ "$add_more" =~ ^[Nn]$ ]]; then
             break
         fi
     done
+
+    if [ "$has_added" -eq 1 ]; then
+        info "Đang tiến hành build cấu hình và khởi động lại dịch vụ..."
+        build_config_json
+        restart_singbox
+        
+        sleep 1
+        if systemctl is-active --quiet sing-box; then
+            echo -e "${GREEN}[XÁC NHẬN] Dịch vụ Sing-box đã KHỞI ĐỘNG THÀNH CÔNG và đang hoạt động thực tế!${NC}"
+        else
+            echo -e "${RED}[XÁC NHẬN] Dịch vụ Sing-box KHỞI ĐỘNG THẤT BẠI! Vui lòng kiểm tra lại cấu hình hoặc log (journalctl -u sing-box -e).${NC}"
+        fi
+        read -n 1 -s -r -p "Nhấn phím bất kỳ để tiếp tục..."
+    fi
 }
 
 list_nodes() {
     clear
     echo -e "${BLUE}================================================================${NC}"
-    echo -e "${BLUE}||${NC}                   ${YELLOW}DANH SÁCH NODE HIỆN TẠI                  ${BLUE}||${NC}"
+    echo -e "${BLUE}||${NC}                   ${YELLOW}DANH SÁCH LINK KẾT NỐI                   ${BLUE}||${NC}"
     echo -e "${BLUE}================================================================${NC}"
 
     if [ ! -s "$NODES_FILE" ] || [ "$(cat "$NODES_FILE")" = "[]" ]; then
         echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
         echo -e "${CYAN}================================================================${NC}"
         return 1
-    else
-        if command -v jq &> /dev/null; then
-            local i=1
-            while read -r tag protocol port domain sni; do
-                echo -e " ${GREEN}$i.${NC} Tag: ${CYAN}$tag${NC} │ Type: ${PURPLE}$protocol${NC} │ Port: ${YELLOW}$port${NC}"
-                echo -e "    Domain: ${BLUE}$domain${NC} │ SNI: ${BLUE}$sni${NC}"
-                echo -e "${CYAN}----------------------------------------------------------------${NC}"
-                i=$((i + 1))
-            done < <(jq -r '.[] | "\(.tag) \(.protocol // .type) \(.port) \(.domain // "N/A") \(.server_name // .sni // .domain // "N/A")"' "$NODES_FILE")
-        else
-            cat "$NODES_FILE"
-        fi
     fi
+
+    local default_uuid=""
+    if [ -f "$USERS_FILE" ]; then
+        default_uuid=$(jq -r '.[0].uuid // empty' "$USERS_FILE" 2>/dev/null)
+    fi
+
+    local count
+    count=$(jq '. | length' "$NODES_FILE" 2>/dev/null || echo 0)
+
+    for (( i=0; i<$count; i++ )); do
+        local tag=$(jq -r ".[$i].tag" "$NODES_FILE")
+        local protocol=$(jq -r ".[$i].protocol" "$NODES_FILE")
+        local port=$(jq -r ".[$i].port" "$NODES_FILE")
+        local domain=$(jq -r ".[$i].domain" "$NODES_FILE")
+        local sni=$(jq -r ".[$i].server_name // .domain" "$NODES_FILE")
+        local pbk=$(jq -r ".[$i].public_key // \"\"" "$NODES_FILE")
+        local sid=$(jq -r ".[$i].short_id // \"\"" "$NODES_FILE")
+        local grpc_service=$(jq -r ".[$i].service_name // \"\"" "$NODES_FILE")
+        local ws_path=$(jq -r ".[$i].ws_path // \"/\"" "$NODES_FILE")
+        local node_uuid=$(jq -r ".[$i].uuid // \"\"" "$NODES_FILE")
+
+        local user_id="${default_uuid:-$node_uuid}"
+        [ -z "$user_id" ] && user_id="12345678-1234-1234-1234-123456789abc"
+
+        local link
+        link=$(build_link "$protocol" "$user_id" "$domain" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service" "$ws_path")
+
+        echo -e " ${GREEN}$((i + 1)).${NC} ${YELLOW}[$tag]${NC} (${CYAN}$protocol${NC})"
+        echo -e " ${BLUE}$link${NC}"
+        echo -e "${CYAN}----------------------------------------------------------------${NC}"
+    done
+
     echo -e "${CYAN}================================================================${NC}"
     return 0
 }
@@ -695,7 +697,7 @@ while true; do
     echo -e "${BLUE}================================================================${NC}"
     echo -e "${BLUE}||${NC}                    ${YELLOW}QUẢN LÝ THÔNG TIN NODE                  ${BLUE}||${NC}"
     echo -e "${BLUE}================================================================${NC}"
-    echo -e " ${GREEN}1.${NC} Hiển thị danh sách Node"
+    echo -e " ${GREEN}1.${NC} Hiển thị danh sách Link kết nối"
     echo -e " ${GREEN}2.${NC} Thêm Node mới"
     echo -e " ${GREEN}3.${NC} Cập nhật Node"
     echo -e " ${GREEN}4.${NC} Xóa Node"
