@@ -11,7 +11,7 @@ clear
 echo -e "${BLUE}=================================================${NC}"
 echo -e "${YELLOW}            MENU CẬP NHẬT HỆ THỐNG${NC}"
 echo -e "${BLUE}=================================================${NC}"
-echo -e "${GREEN} 1.${NC} Cập nhật mã nguồn Script"
+echo -e "${YELLOW} 1.${NC} Cập nhật mã nguồn Script"
 echo -e "${GREEN} 2.${NC} Cập nhật Sing-box Core"
 echo -e "${RED} 0.${NC} Quay lại menu chính"
 echo -e "${BLUE}=================================================${NC}"
