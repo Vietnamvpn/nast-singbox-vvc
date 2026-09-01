@@ -74,14 +74,14 @@ while true; do
     SYS_STATUS=$(check_singbox_status | grep -v "Thông tin:" | head -n 1)
 
     echo -e "${BLUE}=========================================================================${NC}"
-    echo -e "${BLUE}||${NC}                          ${YELLOW}MENU NAST SING-BOX VVC${NC}                      ${BLUE}||${NC}"
+    echo -e "${BLUE}||${NC}                          ${YELLOW}MENU NAST SING-BOX VVC${NC}                     ${BLUE}||${NC}"
     echo -e "${BLUE}=========================================================================${NC}"
     echo -e " ${CYAN}Tác Giả${NC}: ${YELLOW}Vietnamvpn${NC}    | ${CYAN}Singbox Core${NC}: ${GREEN}${CORE_VER}${NC}"
     echo -e " ${CYAN}Trạng Thái${NC} : ${GREEN}${SYS_STATUS} | ${CYAN}Trang Web${NC}  : ${YELLOW}https://linksub24h.com${NC}"
     echo -e "${BLUE}=========================================================================${NC}"
     echo -e "${YELLOW} 1.${NC} Quản Lý Node Server    | ${YELLOW} 4.${NC} Cập Nhật Hệ Thống"
     echo -e "${YELLOW} 2.${NC} Quản Lý Sing-Box       | ${YELLOW} 5.${NC} Gỡ Cài Đặt Hệ Thống"
-    echo -e "${YELLOW} 3.${NC} Quản Lý SSL Cloudflare | ${YELLOW} 0.${NC} Thoát Khỏi Hệ Thống"
+    echo -e "${YELLOW} 3.${NC} Quản Lý SSL Cloudflare | ${RED} 0.${NC} Thoát Khỏi Hệ Thống"
     echo -e "${BLUE}=========================================================================${NC}"
     read -p "Vui lòng nhập lựa chọn của bạn: " main_choice
 

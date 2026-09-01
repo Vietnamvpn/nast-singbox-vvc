@@ -11,9 +11,9 @@ clear
 echo -e "${BLUE}=================================================${NC}"
 echo -e "${YELLOW}            MENU CẬP NHẬT HỆ THỐNG${NC}"
 echo -e "${BLUE}=================================================${NC}"
-echo -e "${GREEN} 1.${NC} Cập nhật mã nguồn Script (từ Github)"
-echo -e "${GREEN} 2.${NC} Cập nhật Sing-box Core (phiên bản mới nhất)"
-echo -e "${GREEN} 0.${NC} Quay lại menu chính"
+echo -e "${GREEN} 1.${NC} Cập nhật mã nguồn Script"
+echo -e "${GREEN} 2.${NC} Cập nhật Sing-box Core"
+echo -e "${RED} 0.${NC} Quay lại menu chính"
 echo -e "${BLUE}=================================================${NC}"
 read -p "Nhập lựa chọn của bạn: " choice
 
