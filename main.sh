@@ -74,7 +74,7 @@ while true; do
     SYS_STATUS=$(check_singbox_status | grep -v "Thông tin:" | head -n 1)
 
     echo -e "${BLUE}=============================================================================${NC}"
-    echo -e "${GREEN}||                             MENU NAST SING-BOX VVC                     ||${NC}"
+    echo -e "${BLUE}||${NC}                             ${YELLOW}MENU NAST SING-BOX VVC${NC}                      ${BLUE}||${NC}"
     echo -e "${BLUE}=============================================================================${NC}"
     echo -e " ${GREEN}Tác giả${NC}: Vietnamvpn    | ${GREEN}Singbox core${NC}: ${CORE_VER}"
     echo -e " ${GREEN}Trạng thái${NC} : ${SYS_STATUS} | ${GREEN}Trang web${NC}  : https://linksub24h.com"
