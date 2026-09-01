@@ -77,7 +77,7 @@ while true; do
     echo -e "${GREEN}                               MENU NAST SING-BOX VVC                                  ${NC}"
     echo -e "${BLUE}=================================================================================================${NC}"
     echo -e " ${GREEN}Tác giả${NC}: Vietnamvpn         | ${GREEN}Singbox core${NC}: ${CORE_VER}"
-    echo -e " ${GREEN}Trạng thái${NC} : ${SYS_STATUS}" | ${GREEN}Trang web${NC}  : https://linksub24h.com"
+    echo -e " ${GREEN}Trạng thái${NC} : ${SYS_STATUS}  | ${GREEN}Trang web${NC}  : https://linksub24h.com"
     echo -e "${BLUE}=================================================================================================${NC}"
     echo -e "${YELLOW} 1.${NC} Quản Lý Node Server"
     echo -e "${YELLOW} 2.${NC} Quản Lý Sing-Box"
