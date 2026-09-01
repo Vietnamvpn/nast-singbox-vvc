@@ -77,22 +77,21 @@ while true; do
     clear
     CORE_VER=$(/usr/local/bin/sing-box version 2>/dev/null | grep -i version | awk '{print $3}')
     CORE_VER=${CORE_VER:-"Chưa cài đặt"}
+    SYS_STATUS=$(check_singbox_status | grep -v "Thông tin:" | head -n 1)
 
-    echo -e "${BLUE}=========================================================${NC}"
-    echo -e "${GREEN}             NAST SING-BOX MANAGER CLI (vvc)             ${NC}"
-    echo -e "${BLUE}=========================================================${NC}"
-    echo -e " ${GREEN}Tác giả    :${NC} Vietnamvpn"
-    echo -e " ${GREEN}Phiên bản  :${NC} v1.0.0 (Core: ${CORE_VER})"
-    echo -e " ${GREEN}Trạng thái :${NC} $(check_singbox_status)"
-    echo -e " ${GREEN}Trang web  :${NC} https://github.com/Vietnamvpn/singbox-manager"
-    echo -e "${BLUE}=========================================================${NC}"
+    echo -e "${BLUE}=================================================================================================${NC}"
+    echo -e "${GREEN}                                NAST SING-BOX MANAGER CLI (vvc)                                  ${NC}"
+    echo -e "${BLUE}=================================================================================================${NC}"
+    echo -e " ${GREEN}Tác giả${NC}    : Vietnamvpn                ${GREEN}Trạng thái${NC} : ${SYS_STATUS}"
+    echo -e " ${GREEN}Phiên bản${NC}  : v1.0.0 (Core: ${CORE_VER})   ${GREEN}Trang web${NC}  : https://github.com/Vietnamvpn/singbox-manager"
+    echo -e "${BLUE}=================================================================================================${NC}"
     echo -e "${YELLOW} 1.${NC} Quản lý Node (Inbounds, Tự động user, Links)"
     echo -e "${YELLOW} 2.${NC} Quản lý Hệ thống (Bật / Tắt / Khởi động lại)"
     echo -e "${YELLOW} 3.${NC} Quản lý SSL (Xin chứng chỉ Cloudflare)"
     echo -e "${YELLOW} 4.${NC} Cập nhật Hệ thống (Script & Core)"
     echo -e "${RED} 5.${NC} Gỡ cài đặt toàn bộ hệ thống (Xoá mã nguồn)"
     echo -e "${YELLOW} 0.${NC} Thoát"
-    echo -e "${BLUE}=========================================================${NC}"
+    echo -e "${BLUE}=================================================================================================${NC}"
     read -p "Vui lòng nhập lựa chọn của bạn: " main_choice
 
     case "$main_choice" in
