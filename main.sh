@@ -105,7 +105,7 @@ while true; do
             read -p "Nhấn Enter để tiếp tục..."
             ;;
         0)
-            echo -e "Đã Thoát ${GREEN}MENU NAST SING-BOX VVC Hẹn Gặp Lại.${NC}"
+            echo -e "${YELLOW}Đã Thoát${NC} ${GREEN}MENU NAST SING-BOX VVC${NC} ${YELLOW}Hẹn Gặp Lại.${NC}"
             exit 0
             ;;
         *)
