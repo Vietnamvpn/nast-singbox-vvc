@@ -455,9 +455,10 @@ while true; do
                 uuuid=$(jq -r ".[$u].uuid" "$DATA_DIR/users.json")
                 
                 echo -e "${BLUE}=================================================${NC}"
-                echo -e "${YELLOW}   DANH SÁCH LINK KẾT NỐI CHO USER: ${GREEN}${uname}${NC}"
+                echo -e "${YELLOW}   DANH SÁCH LINK KẾT NỐI ${NC}"
                 echo -e "${BLUE}=================================================${NC}"
-                
+                echo -e "${YELLOW}User:${NC} ${GREEN}${uname}${NC}"
+
                 for (( i=0; i<$nodes_count; i++ )); do
                     protocol=$(jq -r ".[$i].protocol" "$DATA_DIR/nodes.json")
                     port=$(jq -r ".[$i].port" "$DATA_DIR/nodes.json")
@@ -469,7 +470,6 @@ while true; do
                     
                     link=$(build_link "$protocol" "$uuuid" "$vps_ip" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service")
                     
-                    echo -e "${CYAN}Node: ${tag} (${protocol})${NC}"
                     echo -e "${GREEN}${link}${NC}"
                     echo -e "-------------------------------------------------"
                 done
