@@ -76,7 +76,7 @@ select_certificate_menu() {
         return
     fi
     
-    echo " [0] Dùng chứng chỉ tự ký mặc định (cert.crt)" >&2
+    echo " Để trống mặc định là (cert.crt)" >&2
     local i=1
     for f in "${cert_files[@]}"; do
         echo " [$i] $(basename "$f")" >&2
