@@ -44,12 +44,6 @@ uninstall_system() {
         return
     fi
     
-    read -p "Vui lòng gõ chữ 'XOA' (viết hoa) để xác nhận lần cuối: " confirm_2
-    if [[ "$confirm_2" != "XOA" ]]; then
-        info "Xác nhận sai. Đã huỷ thao tác gỡ cài đặt."
-        return
-    fi
-    
     info "Đang tiến hành dừng các dịch vụ ngầm..."
     systemctl stop sing-box manager
     systemctl disable sing-box manager
@@ -80,16 +74,16 @@ while true; do
     SYS_STATUS=$(check_singbox_status | grep -v "Thông tin:" | head -n 1)
 
     echo -e "${BLUE}=================================================================================================${NC}"
-    echo -e "${GREEN}                                NAST SING-BOX MANAGER CLI (vvc)                                  ${NC}"
+    echo -e "${GREEN}                               MENU NAST SING-BOX VVC                                  ${NC}"
     echo -e "${BLUE}=================================================================================================${NC}"
-    echo -e " ${GREEN}Tác giả${NC}    : Vietnamvpn                ${GREEN}Trạng thái${NC} : ${SYS_STATUS}"
-    echo -e " ${GREEN}Phiên bản${NC}  : v1.0.0 (Core: ${CORE_VER})   ${GREEN}Trang web${NC}  : https://github.com/Vietnamvpn/singbox-manager"
+    echo -e " ${GREEN}Tác giả${NC}: Vietnamvpn         | ${GREEN}Singbox core${NC}: ${CORE_VER}"
+    echo -e " ${GREEN}Trạng thái${NC} : ${SYS_STATUS}" | ${GREEN}Trang web${NC}  : https://linksub24h.com"
     echo -e "${BLUE}=================================================================================================${NC}"
-    echo -e "${YELLOW} 1.${NC} Quản lý Node (Inbounds, Tự động user, Links)"
-    echo -e "${YELLOW} 2.${NC} Quản lý Hệ thống (Bật / Tắt / Khởi động lại)"
-    echo -e "${YELLOW} 3.${NC} Quản lý SSL (Xin chứng chỉ Cloudflare)"
-    echo -e "${YELLOW} 4.${NC} Cập nhật Hệ thống (Script & Core)"
-    echo -e "${RED} 5.${NC} Gỡ cài đặt toàn bộ hệ thống (Xoá mã nguồn)"
+    echo -e "${YELLOW} 1.${NC} Quản Lý Node Server"
+    echo -e "${YELLOW} 2.${NC} Quản Lý Sing-Box"
+    echo -e "${YELLOW} 3.${NC} Quản Lý SSL Cloudflare"
+    echo -e "${YELLOW} 4.${NC} Cập Nhật Hệ Thống"
+    echo -e "${RED} 5.${NC} Gỡ Cài Đặt Toàn Bộ Hệ Thống"
     echo -e "${YELLOW} 0.${NC} Thoát"
     echo -e "${BLUE}=================================================================================================${NC}"
     read -p "Vui lòng nhập lựa chọn của bạn: " main_choice
