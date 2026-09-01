@@ -138,14 +138,14 @@ build_config_json() {
             elif [[ "$protocol" == "hysteria2" ]]; then
                 jq '[.[] | {password: .uuid, name: (.username // .name)}]' "$DATA_DIR/users.json" > "$users_tmp"
             elif [[ "$protocol" == "tuic" ]]; then
-                jq '[.[] | {uuid: .uuid, password: (.password // .uuid), name: (.username // .name)}]' "$DATA_DIR/users.json" > "$users_tmp"
+                jq '[.[] | {uuid: .uuid, name: (.username // .name)}]' "$DATA_DIR/users.json" > "$users_tmp"
             fi
 
             local node_tmp=$(mktemp)
             jq --argjson node "$node_json" --slurpfile users "$users_tmp" '
                 .tag = $node.tag |
                 .listen_port = ($node.port | tonumber) |
-                .users = $users[0] |
+                .users = (if .type == "tuic" then ($users[0] | map(. + {password: $node.password})) else $users[0] end) |
                 
                 if .type == "hysteria2" then
                     .up_mbps = (if $node.up_mbps != null then ($node.up_mbps | tonumber) else 1000 end) |
@@ -200,6 +200,7 @@ build_link() {
     local sid="$8"
     local grpc_service="$9"
     local ws_path="${10:-/}"
+    local pass="${11:-$pbk}"
     
     local link=""
     
@@ -208,7 +209,7 @@ build_link() {
             link="hysteria2://${uuid}@${vps_ip}:${port}/?sni=${sni}&insecure=1#${tag}"
             ;;
         "tuic")
-            link="tuic://${uuid}:${uuid}@${vps_ip}:${port}/?sni=${sni}&congestion_control=bbr&alpn=h3#${tag}"
+            link="tuic://${uuid}:${pass}@${vps_ip}:${port}/?sni=${sni}&congestion_control=bbr&alpn=h3#${tag}"
             ;;
         "vless-reality")
             link="vless://${uuid}@${vps_ip}:${port}?security=reality&encryption=none&pbk=${pbk}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=${sni}&sid=${sid}#${tag}"

@@ -173,9 +173,54 @@ ask_tag() {
 ASKED_CERT=""
 ASKED_KEY=""
 ask_cert() {
-    ASKED_CERT="$BASE_DIR/certs/cert.crt"
-    ASKED_KEY="$BASE_DIR/certs/private.key"
-    echo -e "${GREEN} -> Sử dụng chứng chỉ mặc định:${NC}"
+    local cert_dir="$BASE_DIR/certs"
+    mkdir -p "$cert_dir"
+
+    local certs=()
+    while IFS= read -r file; do
+        [ -n "$file" ] && certs+=("$file")
+    done < <(find "$cert_dir" -type f \( -name "*.crt" -o -name "*.pem" -o -name "fullchain.pem" \) ! -name "*.key" ! -name "privkey.pem" 2>/dev/null)
+
+    if [ ${#certs[@]} -eq 0 ]; then
+        echo -e "${YELLOW} -> Không tìm thấy chứng chỉ nào trong $cert_dir, dùng mặc định:${NC}"
+        ASKED_CERT="$cert_dir/cert.crt"
+        ASKED_KEY="$cert_dir/cert.key"
+    elif [ ${#certs[@]} -eq 1 ]; then
+        ASKED_CERT="${certs[0]}"
+        local dir_path=$(dirname "$ASKED_CERT")
+        local base_name=$(basename "$ASKED_CERT" | sed -E 's/\.(crt|pem)$//')
+
+        if [ -f "$dir_path/$base_name.key" ]; then
+            ASKED_KEY="$dir_path/$base_name.key"
+        elif [ -f "$dir_path/privkey.pem" ]; then
+            ASKED_KEY="$dir_path/privkey.pem"
+        else
+            ASKED_KEY="$dir_path/cert.key"
+        fi
+        echo -e "${GREEN} -> Tự động nhận diện chứng chỉ duy nhất tìm thấy:${NC}"
+    else
+        echo -e "${YELLOW} -> Danh sách chứng chỉ tìm thấy trong $cert_dir:${NC}"
+        for i in "${!certs[@]}"; do
+            echo -e " ${GREEN}$((i+1)).${NC} ${certs[$i]}"
+        done
+        read -p " Chọn số thứ tự chứng chỉ [1-${#certs[@]}]: " cert_choice
+        if [[ "$cert_choice" =~ ^[0-9]+$ ]] && [ "$cert_choice" -ge 1 ] && [ "$cert_choice" -le "${#certs[@]}" ]; then
+            ASKED_CERT="${certs[$((cert_choice-1))]}"
+        else
+            ASKED_CERT="${certs[0]}"
+        fi
+
+        local dir_path=$(dirname "$ASKED_CERT")
+        local base_name=$(basename "$ASKED_CERT" | sed -E 's/\.(crt|pem)$//')
+        if [ -f "$dir_path/$base_name.key" ]; then
+            ASKED_KEY="$dir_path/$base_name.key"
+        elif [ -f "$dir_path/privkey.pem" ]; then
+            ASKED_KEY="$dir_path/privkey.pem"
+        else
+            ASKED_KEY="$dir_path/cert.key"
+        fi
+    fi
+
     echo -e "${GREEN}    Cert: $ASKED_CERT${NC}"
     echo -e "${GREEN}    Key:  $ASKED_KEY${NC}"
 }
@@ -552,6 +597,7 @@ list_nodes() {
         local grpc_service=$(jq -r ".[$i].service_name // \"\"" "$NODES_FILE")
         local ws_path=$(jq -r ".[$i].ws_path // \"/\"" "$NODES_FILE")
         local node_uuid=$(jq -r ".[$i].uuid // \"\"" "$NODES_FILE")
+        local node_pass=$(jq -r ".[$i].password // \"\"" "$NODES_FILE")
 
         local user_id="${default_uuid:-$node_uuid}"
         [ -z "$user_id" ] && user_id="12345678-1234-1234-1234-123456789abc"
@@ -560,7 +606,7 @@ list_nodes() {
             echo -e " ${GREEN}$((i + 1)).${NC} ${YELLOW}[$tag]${NC} (${CYAN}$protocol${NC}) - $domain:$port"
         else
             local link
-            link=$(build_link "$protocol" "$user_id" "$domain" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service" "$ws_path")
+            link=$(build_link "$protocol" "$user_id" "$domain" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service" "$ws_path" "$node_pass")
             echo -e "$link"
         fi
     done
