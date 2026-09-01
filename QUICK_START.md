@@ -2,20 +2,18 @@
 
 ## 🚀 Bắt Đầu Nhanh Trong 5 Phút
 
-### ⚠️ CHỌN CÁCH CÀI ĐẶT CỦA BẠN:
+### Bước 1: Cài Đặt (1 Lệnh Trên VPS)
 
-#### 🖥️ Nếu Cài Trên VPS Server:
-```bash
-sudo -i
-git clone https://github.com/Vietnamvpn/nast-singbox-vvc.git /root/nast-singbox-vvc
-cd /root/nast-singbox-vvc
-bash install.sh
-```
-
-#### 💻 Nếu Cài Trên Local/Client Machine (⭐ Khuyến Nghị):
+**Lệnh Nhanh Nhất** ⭐
 ```bash
 bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
 ```
+
+Lệnh này sẽ:
+- ✅ Tải mã nguồn từ GitHub
+- ✅ Cài đặt dependencies
+- ✅ Thiết lập hệ thống
+- ✅ Sẵn sàng sử dụng
 
 ### Bước 2: Mở Menu Chính
 ```bash

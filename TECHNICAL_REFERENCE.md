@@ -14,15 +14,18 @@
     "port": 2345,                              // Port server
     "protocol": "vless-reality",               // Loại giao thức
     "domain": "vps.example.com",               // Domain/IP VPS
-    "sni": "aws.amazon.com",                   // SNI giả mạo (Reality)
-    "cert": "/root/nast-singbox-vvc/certs/cert.crt",   // Đường dẫn cert
-    "key": "/root/nast-singbox-vvc/certs/cert.key",    // Đường dẫn key
+    "server_name": "aws.amazon.com",           // SNI (server_name)
+    "cert_path": "/root/nast-singbox-vvc/certs/cert.crt",   // Đường dẫn cert
+    "key_path": "/root/nast-singbox-vvc/certs/cert.key",    // Đường dẫn key
     "uuid": "12345678-1234-1234-1234-123456789abc",    // VLESS UUID
     "private_key": "KF...",                   // Reality Private Key
     "public_key": "...",                      // Reality Public Key
     "short_id": "abcd1234",                   // Reality Short ID
     "password": "secretpass123",              // Mật khẩu (Hy2/Tuic)
-    "created_at": "2024-01-01 12:00:00"       // Thời gian tạo
+    "ws_path": "/ws-abc123",                  // WebSocket path
+    "service_name": "grpc-service",           // gRPC service name
+    "up_mbps": 1000,                          // Bandwidth up (Hy2)
+    "down_mbps": 1000                         // Bandwidth down (Hy2)
   }
 ]
 ```
@@ -240,8 +243,8 @@ check_tag_exists
 # Form VLESS Reality (TCP)
 form_vless_reality
 
-# Form VLESS Reality (gRPC)
-form_vless_reality_grpc
+# Form VLESS gRPC Reality
+form_vless_grpc_reality
 
 # Form VLESS WebSocket TLS
 form_vless_ws_tls
@@ -386,7 +389,44 @@ journalctl -u sing-box -f
 }
 ```
 
-### 3.3 Hysteria 2
+### 3.3 VLESS gRPC Reality
+
+**Characteristics:**
+- Giao thức: VLESS
+- Transport: gRPC
+- Encapsulation: TLS + Reality
+- Obfuscation: Reality (giả mạo SNI)
+- Best for: Stable network
+
+**Configuration:**
+```json
+{
+  "type": "vless",
+  "listen_port": PORT,
+  "users": [{
+    "uuid": "UUID"
+  }],
+  "transport": {
+    "type": "grpc",
+    "service_name": "SERVICE_NAME"
+  },
+  "tls": {
+    "enabled": true,
+    "server_name": "FAKE_SNI",
+    "reality": {
+      "enabled": true,
+      "handshake": {
+        "server": "FAKE_SNI",
+        "server_port": 443
+      },
+      "private_key": "PRIVATE_KEY",
+      "short_id": ["SHORT_ID"]
+    }
+  }
+}
+```
+
+### 3.4 Hysteria 2
 
 **Characteristics:**
 - Giao thức: QUIC
@@ -409,7 +449,7 @@ journalctl -u sing-box -f
 }
 ```
 
-### 3.4 Tuic
+### 3.5 Tuic
 
 **Characteristics:**
 - Giao thức: QUIC

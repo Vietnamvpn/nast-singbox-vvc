@@ -20,26 +20,6 @@
 
 ## 🔧 VẤN ĐỀ CÀI ĐẶT
 
-### ⚠️ LƯU Ý QUAN TRỌNG: Lệnh Git Chỉ Cho Local/Client
-**KHÔNG dùng lệnh git nhanh này trên VPS:**
-```bash
-❌ bash <(curl -Ls https://raw.githubusercontent.com/...)
-```
-
-**Trên VPS, dùng một trong các cách:**
-```bash
-# Cách 1: Clone từ GitHub
-sudo -i
-git clone https://github.com/Vietnamvpn/nast-singbox-vvc.git /root/nast-singbox-vvc
-cd /root/nast-singbox-vvc
-bash install.sh
-
-# Cách 2: Upload file local rồi chạy
-bash install.sh
-```
-
----
-
 ### ❌ Lỗi: "Permission denied"
 **Nguyên nhân:** Không chạy với quyền root
 

@@ -66,19 +66,19 @@ Dự án này cung cấp 4 file tài liệu chi tiết:
 
 ## ⚡ Bắt Đầu Nhanh
 
-### CHỌN CÁCH CÀI ĐẶT:
+### Lệnh Cài Đặt (Chạy Trên VPS):
 
-#### 🖥️ CÀI TRÊN VPS SERVER:
+**Lệnh Nhanh Nhất** ⭐ (Khuyến Nghị)
+```bash
+bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
+```
+
+Hoặc dùng Git Clone:
 ```bash
 sudo -i
 git clone https://github.com/Vietnamvpn/nast-singbox-vvc.git /root/nast-singbox-vvc
 cd /root/nast-singbox-vvc
 bash install.sh
-```
-
-#### 💻 CÀI TRÊN LOCAL/CLIENT (Khuyến Nghị - Không Tải VPS):
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
 ```
 
 ### Mở Menu

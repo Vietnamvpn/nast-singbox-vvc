@@ -32,8 +32,8 @@
 ### 🔌 **Quản Lý Node**
 - **Thêm node mới?** → [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) phần "QUẢN LÝ NODE SERVER"
 - **Muốn biết 5 loại node?** → [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) phần "CÁC LOẠI NODE HỖ TRỢ"
-- **Xóa node?** → [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) phần "1.7 Xoá Node Theo Tag"
-- **Xuất cấu hình node?** → [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) phần "1.8 Xuất Config cho Một Node"
+- **Xem/Cập nhật/Xóa node?** → [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) phần "QUẢN LÝ NODE SERVER" (4 chức năng chính)
+- **Xem link kết nối?** → [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) phần "1. Danh Sách Link Kết Nối"
 - **Node không hoạt động?** → [TROUBLESHOOTING.md](TROUBLESHOOTING.md) phần "VẤN ĐỀ NODE"
 
 ---
@@ -232,19 +232,19 @@ tar -czf backup-$(date +%Y%m%d).tar.gz /root/nast-singbox-vvc/data /root/nast-si
 
 ## 🎁 BONUS: QUICK REFERENCE
 
-### Cài Đặt Nhanh
+### Cài Đặt Nhanh (Chạy Trên VPS)
 
-#### 🖥️ VPS Server (Clone từ GitHub):
+**Lệnh Nhanh Nhất** ⭐
+```bash
+bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
+```
+
+**Hoặc Clone từ GitHub:**
 ```bash
 sudo -i
 git clone https://github.com/Vietnamvpn/nast-singbox-vvc.git /root/nast-singbox-vvc
 cd /root/nast-singbox-vvc
 bash install.sh
-```
-
-#### 💻 Local/Client Machine (⭐ Khuyến Nghị - Không Tải VPS):
-```bash
-bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
 ```
 
 ### Lệnh Thường Dùng

@@ -19,47 +19,40 @@
 
 ### Các Bước Cài Đặt
 
-#### ⚠️ QUAN TRỌNG: Không Tải Lênh Git Nhanh Lên VPS
-**Lệnh này chỉ cho local/client machines:**
+#### 🖥️ CÀI ĐẶT TRÊN VPS SERVER
+
+**Phương Pháp 1: Lệnh Nhanh Nhất** ⭐ (Khuyến Nghị)
 ```bash
-❌ bash <(curl -Ls https://raw.githubusercontent.com/...)
+bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
+```
+
+Cách này sẽ:
+- Tải `install.sh` từ GitHub
+- Chạy script để cài đặt
+- Tự động tải mã nguồn về `/root/nast-singbox-vvc`
+- Cài đặt dependencies
+- Thiết lập dịch vụ systemd cho Sing-box
+
+---
+
+**Phương Pháp 2: Clone từ GitHub (Thay Thế)**
+```bash
+sudo -i
+git clone https://github.com/Vietnamvpn/nast-singbox-vvc.git /root/nast-singbox-vvc
+cd /root/nast-singbox-vvc
+bash install.sh
 ```
 
 ---
 
-#### 🖥️ CÀI ĐẶT TRÊN VPS SERVER
-
-1. **Cấp quyền Root**
-   ```bash
-   sudo -i
-   ```
-
-2. **Phương Pháp 1: Clone từ GitHub (Khuyến Nghị)**
-   ```bash
-   git clone https://github.com/Vietnamvpn/nast-singbox-vvc.git /root/nast-singbox-vvc
-   cd /root/nast-singbox-vvc
-   bash install.sh
-   ```
-
-3. **Phương Pháp 2: Tải File Local Lên VPS**
-   - Tải repository về local máy của bạn
-   - Upload toàn bộ thư mục lên VPS (dùng SCP hoặc SFTP)
-   - SSH vào VPS và chạy:
-   ```bash
-   cd /root/nast-singbox-vvc
-   bash install.sh
-   ```
-
----
-
-#### 💻 CÀI ĐẶT TRÊN LOCAL/CLIENT (⭐ Chỉ Chạy Trên Local)
-
-**Lệnh git nhanh này không tải lên VPS:**
-   ```bash
-   bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
-   ```
-   
-   Script này sẽ:
+**Phương Pháp 3: Upload File Local Lên VPS (Thay Thế)**
+1. Tải repository về local máy của bạn
+2. Upload toàn bộ thư mục lên VPS (SCP hoặc SFTP)
+3. SSH vào VPS và chạy:
+```bash
+cd /root/nast-singbox-vvc
+bash install.sh
+```
    - Cài đặt các gói phụ thuộc (curl, wget, jq, git, openssl, netcat, uuid-runtime)
    - Tải mã nguồn từ GitHub
    - Tạo các thư mục dữ liệu (`data/`, `certs/`)
@@ -103,54 +96,126 @@ vvc
 ### Truy Cập
 Từ menu chính, chọn **1. Quản Lý Node Server**
 
-### Các Chức Năng
+### Menu Quản Lý Node (4 Tùy Chọn)
 
-#### **1.1 Thêm Node VLESS Reality (TCP)**
-- **Đầu vào yêu cầu:**
-  - **Port**: Để trống sẽ tự động chọn port ngẫu nhiên (2000-6000) hoặc nhập port cụ thể
-  - **SNI (Server Name)**: Tên miền giả cho Reality (mặc định: tự chọn từ danh sách: itunes.apple.com, aws.amazon.com, v.v.)
-  - **Domain**: Tên miền hoặc IP VPS của bạn (để trống sẽ lấy IP tự động)
-  - **Tag**: Tên nhận dạng node (để trống sẽ tạo dựa trên quốc gia + port)
-  - **Chứng chỉ SSL**: Chọn từ danh sách chứng chỉ hiện có
+```
+1. Danh sách Link kết nối    (Hiển thị proxy links)
+2. Thêm Node mới             (Thêm node mới - chọn giao thức)
+3. Cập nhật Node             (Chỉnh sửa node hiện có)
+4. Xóa Node                  (Xóa 1 node hoặc tất cả)
+0. Quay lại Menu chính
+```
 
-- **Hoạt động tự động:**
-  - Sinh tự động Reality Keypair (private key & public key)
-  - Sinh tự động Short ID (8 ký tự hex)
-  - Sinh tự động UUID cho user
-  - Mở port trên firewall (ufw, iptables, hoặc firewall-cmd)
-  - Lưu lại thông tin node vào file `data/nodes.json`
+---
 
-#### **1.2 Thêm Node VLESS Reality (GRPC)**
-- **Tương tự như VLESS Reality (TCP)** nhưng sử dụng gRPC protocol thay vì TCP
+### ✨ Chi Tiết Từng Chức Năng
 
-#### **1.3 Thêm Node VLESS WebSocket (TLS)**
-- **Đầu vào:** Port, Domain, Tag, Chứng chỉ SSL
-- **Hoạt động:** Sinh UUID, mở port, lưu thông tin node
+#### **1. Danh Sách Link Kết Nối**
 
-#### **1.4 Thêm Node Hysteria 2 (Hy2)**
-- **Đầu vào:** Port, Domain, Tag, Chứng chỉ SSL
-- **Hoạt động:** Sinh mật khẩu, mở port, lưu thông tin node
+**Mục đích:** Hiển thị các connection links (proxy URIs) mà bạn có thể chia sẻ cho clients
 
-#### **1.5 Thêm Node Tuic**
-- **Đầu vào:** Port, Domain, Tag, Chứng chỉ SSL
-- **Hoạt động:** Sinh UUID & mật khẩu, mở port, lưu thông tin node
+**Thông tin hiển thị:**
+- Link kết nối đầy đủ cho mỗi node
+- Format: `protocol://...` (vless://, hysteria2://, tuic://, v.v.)
+- Có thể copy để chia sẻ hoặc import vào client
 
-#### **1.6 Xem Danh Sách Nodes Hiện Có**
-- Hiển thị tất cả node đã thêm
-- Thông tin bao gồm: Tag, Port, Protocol, Domain, Ngày tạo
+**Lưu ý:**
+- Links được tạo tự động từ thông tin node
+- UUID được lấy từ user mặc định (admin)
+- Tất cả thông tin (port, domain, SNI, keys) được tính toán tự động
 
-#### **1.7 Xoá Node Theo Tag**
-- Chọn node từ danh sách
-- Xác nhận xoá
-- Tự động đóng port trên firewall
+---
 
-#### **1.8 Xuất Config cho Một Node**
-- Hiển thị cấu hình chi tiết của node
-- Có thể sao chép để sử dụng trong client hoặc chia sẻ
+#### **2. Thêm Node Mới**
 
-#### **1.9 Xuất Toàn Bộ Config dưới dạng Batch**
-- Xuất tất cả node trong định dạng nhị phân `.box` hoặc JSON
-- Phù hợp để import vào Sing-box client
+**Bước 1:** Chọn giao thức
+
+```
+1. VLESS REALITY (TCP)       ← Khuyến nghị, hiệu năng cao
+2. VLESS WebSocket TLS       ← Dùng cho reverse proxy
+3. VLESS gRPC REALITY        ← Tốt nhất cho network ổn định
+4. Hysteria 2                ← Tối ưu cho network kém
+5. TUIC                      ← Nhẹ, hiệu quả
+0. Quay lại
+```
+
+**Bước 2:** Nhập thông tin Node
+
+Tuỳ theo giao thức, bạn sẽ được hỏi:
+
+**Port (Bắt buộc):**
+- Để trống → Tự động chọn port ngẫu nhiên (2000-6000)
+- Hoặc nhập số port cụ thể (1-65535)
+- Tự động mở port trên firewall
+
+**Domain (Tùy chọn):**
+- Nhập tên miền hoặc IP VPS
+- Để trống → Tự động lấy IP công cộng của VPS
+
+**SNI (Chỉ VLESS Reality):**
+- Tên miền giả để pass firewall
+- Để trống → Tự động chọn từ danh sách (aws.amazon.com, itunes.apple.com, v.v.)
+
+**Tag (Tên nhận dạng):**
+- Tên duy nhất để phân biệt các node
+- Để trống → Tự động tạo từ quốc gia + port (ví dụ: VN-2345)
+
+**Chứng chỉ SSL:**
+- Chọn từ danh sách chứng chỉ có sẵn
+- Nếu không có, sẽ dùng cert mặc định (self-signed)
+
+**Bước 3:** Hệ thống tự động
+
+Sau khi nhập thông tin, script sẽ tự động:
+- ✅ Sinh Reality Keypair (nếu VLESS Reality)
+- ✅ Sinh Short ID (8 ký tự hex)
+- ✅ Sinh UUID & Password
+- ✅ Mở port trên firewall
+- ✅ Lưu vào `data/nodes.json`
+- ✅ Build config.json
+- ✅ Khởi động lại Sing-box
+
+**Thêm nhiều node liên tiếp:**
+Sau khi thêm xong, script hỏi "Bạn có muốn thêm giao thức nữa không? (y/n)"
+- Nếu chọn `y`: Quay lại bước 1, tiếp tục thêm
+- Nếu chọn `n`: Kết thúc
+
+---
+
+#### **3. Cập Nhật Node**
+
+**Chọn Node:**
+Hiển thị danh sách tất cả nodes, chọn số thứ tự
+
+**Chỉnh Sửa:**
+- **Tag mới**: Đổi tên nhận dạng node
+- **Domain mới**: Đổi tên miền/IP
+- **Port mới**: Đổi port (tự kiểm tra port trống)
+- **SSL Certificate**: Chọn lại chứng chỉ SSL
+
+**Sau khi cập nhật:**
+- Config.json được build lại tự động
+- Sing-box khởi động lại để áp dụng thay đổi
+
+---
+
+#### **4. Xóa Node**
+
+**Chọn Node:**
+Hiển thị danh sách, chọn số thứ tự node cần xóa
+
+**Các tùy chọn:**
+```
+- Nhập số: Xóa node đó (cần xác nhận)
+- Để trống: Xóa TẤT CẢ node (cần xác nhận 2 lần)
+- Nhập 0: Hủy
+```
+
+**Sau khi xóa:**
+- ✅ Tự động đóng port trên firewall
+- ✅ Xóa khỏi `nodes.json`
+- ✅ Build config.json lại
+- ✅ Khởi động lại Sing-box
 
 ---
 
