@@ -521,7 +521,6 @@ list_nodes() {
     echo -e "${BLUE}================================================================${NC}"
     echo -e "${BLUE}||${NC}                   ${YELLOW}DANH SÁCH LINK KẾT NỐI                   ${BLUE}||${NC}"
     echo -e "${BLUE}================================================================${NC}"
-
     if [ ! -s "$NODES_FILE" ] || [ "$(cat "$NODES_FILE")" = "[]" ]; then
         echo -e "${YELLOW}Chưa có node nào được tạo.${NC}"
         echo -e "${CYAN}================================================================${NC}"
@@ -552,11 +551,8 @@ list_nodes() {
         [ -z "$user_id" ] && user_id="12345678-1234-1234-1234-123456789abc"
 
         local link
-        link=$(build_link "$protocol" "$user_id" "$domain" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service" "$ws_path")
-
-        echo -e " ${GREEN}$((i + 1)).${NC} ${YELLOW}[$tag]${NC} (${CYAN}$protocol${NC})"
+        link=$(build_link "$protocol" "$user_id" "$domain" "$port" "$tag" "$sni" "$pbk" "$sid" "$grpc_service" "$ws_path")      
         echo -e " ${BLUE}$link${NC}"
-        echo -e "${CYAN}----------------------------------------------------------------${NC}"
     done
 
     echo -e "${CYAN}================================================================${NC}"
