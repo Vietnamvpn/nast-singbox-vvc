@@ -73,19 +73,19 @@ while true; do
     CORE_VER=${CORE_VER:-"Chưa cài đặt"}
     SYS_STATUS=$(check_singbox_status | grep -v "Thông tin:" | head -n 1)
 
-    echo -e "${BLUE}=================================================================================================${NC}"
-    echo -e "${GREEN}                               MENU NAST SING-BOX VVC                                  ${NC}"
-    echo -e "${BLUE}=================================================================================================${NC}"
-    echo -e " ${GREEN}Tác giả${NC}: Vietnamvpn         | ${GREEN}Singbox core${NC}: ${CORE_VER}"
-    echo -e " ${GREEN}Trạng thái${NC} : ${SYS_STATUS}  | ${GREEN}Trang web${NC}  : https://linksub24h.com"
-    echo -e "${BLUE}=================================================================================================${NC}"
+    echo -e "${BLUE}=============================================================================${NC}"
+    echo -e "${GREEN}                               MENU NAST SING-BOX VVC                       ${NC}"
+    echo -e "${BLUE}=============================================================================${NC}"
+    echo -e " ${GREEN}Tác giả${NC}: Vietnamvpn     | ${GREEN}Singbox core${NC}: ${CORE_VER}"
+    echo -e " ${GREEN}Trạng thái${NC} : ${SYS_STATUS} | ${GREEN}Trang web${NC}  : https://linksub24h.com"
+    echo -e "${BLUE}==============================================================================${NC}"
     echo -e "${YELLOW} 1.${NC} Quản Lý Node Server"
     echo -e "${YELLOW} 2.${NC} Quản Lý Sing-Box"
     echo -e "${YELLOW} 3.${NC} Quản Lý SSL Cloudflare"
     echo -e "${YELLOW} 4.${NC} Cập Nhật Hệ Thống"
     echo -e "${RED} 5.${NC} Gỡ Cài Đặt Toàn Bộ Hệ Thống"
-    echo -e "${YELLOW} 0.${NC} Thoát"
-    echo -e "${BLUE}=================================================================================================${NC}"
+    echo -e "${YELLOW} 0.${NC} Thoát Khỏi Hệ Thống"
+    echo -e "${BLUE}===============================================================================${NC}"
     read -p "Vui lòng nhập lựa chọn của bạn: " main_choice
 
     case "$main_choice" in
