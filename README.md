@@ -1,79 +1,33 @@
-# 🎯 NAST SING-BOX VVC - Hệ Thống Quản Lý Proxy Server
+# NAST Sing-box VVC
 
-![Version](https://img.shields.io/badge/Version-1.0-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Author](https://img.shields.io/badge/Author-Vietnamvpn-orange)
+README này được cập nhật theo đúng các menu và thao tác thực tế hiện có trong dự án, dựa trên các file trong thư mục modules và entry point main.sh.
 
-**Nast Sing-box VVC** là một hệ thống quản lý proxy server dựa trên **Sing-box**, cung cấp giao diện dòng lệnh (CLI) thân thiện để quản lý các node proxy, chứng chỉ SSL, và dịch vụ Sing-box.
+## Mục tiêu
 
----
+Dự án này là một hệ thống quản lý dịch vụ Sing-box bằng giao diện dòng lệnh, hỗ trợ:
+- Quản lý node proxy
+- Tạo và xoá node theo loại giao thức
+- Khởi động, dừng, khởi động lại Sing-box
+- Quản lý SSL Cloudflare
+- Cập nhật hệ thống / gỡ cài đặt
 
-## 📚 Tài Liệu
+## Yêu cầu
 
-Dự án này cung cấp 4 file tài liệu chi tiết:
+- Hệ điều hành Linux (Ubuntu/Debian/CentOS/AlmaLinux...)
+- Quyền root hoặc sudo
+- Kết nối internet để cài đặt và xin SSL
+- Sing-box core và các công cụ phụ trợ như jq, curl, openssl
 
-### 🚀 [QUICK_START.md](QUICK_START.md) - **Bắt Đầu Nhanh** ⭐
-**Dành cho:** Người dùng muốn bắt đầu trong **5 phút**
-- ✅ Cài đặt một lệnh
-- ✅ Thêm node đầu tiên
-- ✅ Các lệnh thường dùng
-- ✅ Backup dữ liệu
+## Cài đặt nhanh
 
-**Đọc trước nếu bạn mới bắt đầu!**
+Chạy trên VPS:
 
----
-
-### 📘 [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) - **Hướng Dẫn Sử Dụng Chi Tiết**
-**Dành cho:** Người dùng muốn hiểu **đầy đủ** tất cả tính năng
-- 📋 Hướng dẫn cài đặt từng bước
-- 🔌 5 loại node hỗ trợ (VLESS, Hy2, Tuic, v.v.)
-- 📊 Quản lý Node, SSL, Sing-box
-- 🔐 Quản lý Ports & Firewall
-- 💾 Cấu trúc thư mục & dữ liệu
-- 📝 Ví dụ thực tế
-
-**Đây là hướng dẫn chính, phổ biến nhất.**
-
----
-
-### 🔧 [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) - **Tài Liệu Kỹ Thuật**
-**Dành cho:** Developer & người dùng nâng cao
-- 📊 Cấu trúc dữ liệu JSON chi tiết
-- 🔌 Tham khảo hàm trong từng module
-- 🎯 Protocol specifications (VLESS, Hy2, Tuic)
-- 🛠️ Systemd services
-- 💡 Performance tuning
-- 🔍 Configuration generation flow
-
-**Để mở rộng hoặc tích hợp với hệ thống khác.**
-
----
-
-### 🐛 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - **Hướng Dẫn Khắc Phục Sự Cố**
-**Dành cho:** Khi gặp lỗi hoặc vấn đề
-- ❌ Lỗi cài đặt & cách giải
-- 🛑 Lỗi Sing-box service
-- 📍 Lỗi node
-- 🔐 Lỗi SSL/Chứng chỉ
-- 🌐 Lỗi kết nối
-- ⚡ Lỗi hiệu năng
-- 📊 Logs & Debug
-- ❓ FAQ
-
-**Tra cứu nhanh khi gặp sự cố!**
-
----
-
-## ⚡ Bắt Đầu Nhanh
-
-### Lệnh Cài Đặt (Chạy Trên VPS):
-
-**Lệnh Nhanh Nhất** ⭐ (Khuyến Nghị)
 ```bash
 bash <(curl -Ls https://raw.githubusercontent.com/Vietnamvpn/nast-singbox-vvc/main/install.sh)
 ```
 
-Hoặc dùng Git Clone:
+Hoặc clone mã nguồn rồi chạy:
+
 ```bash
 sudo -i
 git clone https://github.com/Vietnamvpn/nast-singbox-vvc.git /root/nast-singbox-vvc
@@ -81,132 +35,19 @@ cd /root/nast-singbox-vvc
 bash install.sh
 ```
 
-### Mở Menu
+Sau khi cài đặt xong, chạy:
+
 ```bash
 vvc
 ```
 
-✅ **Xong!** Bây giờ bạn có thể thêm nodes, quản lý SSL, và điều khiển Sing-box từ menu.
-
-**Muốn hiểu rõ hơn?** → Đọc [QUICK_START.md](QUICK_START.md) (5 phút)
-
 ---
 
-## 🎯 Chọn Tài Liệu Phù Hợp
+## Menu chính thực tế
 
-### 🆕 Bạn là người mới?
-```
-QUICK_START.md → HUONG_DAN_SU_DUNG.md
-```
-Làm theo từng bước, không bỏ sót chi tiết.
+Khi chạy lệnh vvc, menu chính hiển thị như sau:
 
----
-
-### 👨‍💼 Bạn là admin/operator?
-```
-HUONG_DAN_SU_DUNG.md → TROUBLESHOOTING.md
-```
-Quản lý hệ thống hàng ngày, khắc phục sự cố.
-
----
-
-### 👨‍💻 Bạn là developer?
-```
-TECHNICAL_REFERENCE.md → HUONG_DAN_SU_DUNG.md
-```
-Hiểu cấu trúc, mở rộng tính năng.
-
----
-
-### 🆘 Bạn gặp lỗi?
-```
-TROUBLESHOOTING.md
-```
-Tra cứu nhanh lỗi và cách giải.
-
----
-
-## 📋 Tính Năng Chính
-
-### ✅ Quản Lý Node Server
-- 🔌 5 loại node: VLESS Reality (TCP/gRPC), VLESS WebSocket, Hysteria2, Tuic
-- 🎯 Tự động sinh keys, UUIDs, passwords
-- 📍 Tự động mở/đóng firewall ports
-- 📊 Xem danh sách node
-- 🗑️ Xoá node an toàn
-
-### ✅ Quản Lý Sing-box
-- ▶️ Khởi động/Dừng/Khởi động lại dịch vụ
-- 📊 Xem status & logs
-- 🔄 Tự động load config
-
-### ✅ Quản Lý SSL Cloudflare
-- 🔐 Xin chứng chỉ SSL tự động via Cloudflare
-- 📝 Lưu chứng chỉ riêng biệt (không ghi đè)
-- 📋 Xem danh sách chứng chỉ
-
-### ✅ Cập Nhật & Bảo Trì
-- 🔄 Cập nhật mã nguồn từ Git (dữ liệu bảo toàn)
-- 📦 Cập nhật Sing-box core
-- 🗑️ Gỡ cài đặt an toàn
-
----
-
-## 🗂️ Cấu Trúc Dự Án
-
-```
-/root/nast-singbox-vvc/
-├── 📄 README.md                       ← Bạn đang đọc file này
-├── 📚 QUICK_START.md                  ← Bắt đầu nhanh (5 phút)
-├── 📘 HUONG_DAN_SU_DUNG.md           ← Hướng dẫn chi tiết
-├── 🔧 TECHNICAL_REFERENCE.md         ← Tài liệu kỹ thuật
-├── 🐛 TROUBLESHOOTING.md             ← Khắc phục sự cố
-├── install.sh                         # Cài đặt ban đầu
-├── main.sh                            # Menu chính
-├── update.sh                          # Cập nhật hệ thống
-├── 📁 modules/
-│   ├── nodes.sh                      # Quản lý node
-│   ├── ssl.sh                        # Quản lý SSL
-│   ├── system.sh                     # Quản lý Sing-box
-│   └── utils.sh                      # Tiện ích chung
-├── 📁 templates/                     # Templates cấu hình
-├── 📁 data/                          # Dữ liệu (tự động tạo)
-│   ├── nodes.json                   # Danh sách node
-│   ├── domain.json                  # Danh sách domain
-│   ├── users.json                   # Danh sách user
-│   └── config.json                  # Cấu hình chính
-└── 📁 certs/                         # Chứng chỉ SSL
-    ├── cert.crt                     # Cert mặc định
-    └── cert.key                     # Key mặc định
-```
-
----
-
-## 🔌 Loại Node Hỗ Trợ
-
-| Loại | Giao Thức | Transport | Hiệu Năng | Tối Ưu Cho |
-|------|----------|-----------|----------|-----------|
-| **VLESS Reality (TCP)** | VLESS | TCP | ⭐⭐⭐ | Mọi tình huống |
-| **VLESS Reality (gRPC)** | VLESS | gRPC/HTTP2 | ⭐⭐⭐⭐ | Network ổn định |
-| **VLESS WebSocket (TLS)** | VLESS | WebSocket | ⭐⭐⭐ | Reverse proxy |
-| **Hysteria2 (Hy2)** | QUIC | UDP | ⭐⭐⭐⭐ | Network kém |
-| **Tuic** | QUIC | UDP | ⭐⭐⭐ | Network kém |
-
----
-
-## 🚀 Yêu Cầu Hệ Thống
-
-- **OS:** Linux (Ubuntu/Debian, CentOS, AlmaLinux, v.v.)
-- **Quyền:** Root hoặc sudo
-- **RAM:** 512MB tối thiểu
-- **Disk:** 1GB tối thiểu
-- **Network:** Kết nối internet ổn định
-
----
-
-## 📊 Menu Chính
-
-```
+```text
 ========================================================================
 ||                      MENU NAST SING-BOX VVC                      ||
 ========================================================================
@@ -219,133 +60,304 @@ Tra cứu nhanh lỗi và cách giải.
 ========================================================================
 ```
 
+### Chức năng của từng mục
+
+1. Quản Lý Node Server
+   - Xem link kết nối
+   - Thêm node mới
+   - Cập nhật node
+   - Xoá node
+   - Quay lại menu chính
+
+2. Quản Lý Sing-Box
+   - Khởi động Sing-box
+   - Dừng Sing-box
+   - Khởi động lại Sing-box
+   - Xem nhật ký hoạt động
+   - Quay lại menu chính
+
+3. Quản Lý SSL Cloudflare
+   - Đăng ký chứng chỉ SSL qua Cloudflare
+   - Xem danh sách chứng chỉ trong thư mục certs
+   - Quay lại menu chính
+
+4. Cập Nhật Hệ Thống
+   - Chạy script cập nhật của dự án
+
+5. Gỡ Cài Đặt Hệ Thống
+   - Xoá toàn bộ hệ thống và dữ liệu
+   - Có cảnh báo có xác nhận rõ ràng
+
+0. Thoát khỏi hệ thống
+
 ---
 
-## 📝 Ví Dụ Sử Dụng
+## Quản lý node
 
-### Ví Dụ 1: Thêm Node VLESS Reality
+Khi chọn 1 trong menu chính, bạn vào submenu node:
+
+```text
+================================================================
+||                    QUẢN LÝ THÔNG TIN NODE                  ||
+================================================================
+ 1. Danh sách Link kết nối
+ 2. Thêm Node mới
+ 3. Cập nhật Node
+ 4. Xóa Node
+ 0. Quay lại Menu chính
+================================================================
+```
+
+### 1) Danh sách Link kết nối
+- Hiển thị toàn bộ node đang có
+- Tạo link URI cho từng node theo giao thức tương ứng
+- Nếu không có node nào, hệ thống sẽ báo chưa có node
+
+### 2) Thêm Node mới
+Bạn sẽ được chọn loại giao thức:
+
+```text
+================================================================
+||                 CHỌN GIAO THỨC CHO NODE                     ||
+================================================================
+ 1. VLESS REALITY (TCP)
+ 2. VLESS WebSocket TLS
+ 3. VLESS gRPC REALITY
+ 4. Hysteria 2
+ 5. TUIC
+ 0. Quay lại
+================================================================
+```
+
+Các loại node hỗ trợ thực tế trong module:
+- VLESS REALITY (TCP)
+- VLESS WebSocket TLS
+- VLESS gRPC REALITY
+- Hysteria 2
+- TUIC
+
+### Quy trình thêm node
+
+Khi tạo node, hệ thống sẽ tự động hỏi hoặc sinh các giá trị sau:
+- Port: nhập thủ công hoặc để trống để chọn ngẫu nhiên
+- SNI: nhập thủ công hoặc để trống để tự tạo ngẫu nhiên
+- Domain: nhập thủ công hoặc để trống sẽ lấy IP VPS
+- Tag: nhập thủ công hoặc để trống để tự động theo quốc gia + port
+- Chứng chỉ SSL: nếu cần cho WebSocket/Hysteria2/TUIC, hệ thống sẽ tự dò trong thư mục certs
+- Public key / Private key / Short ID / UUID / Password: tự động sinh nếu cần
+
+Sau khi thêm node thành công, hệ thống sẽ:
+- ghi dữ liệu vào file nodes.json
+- build lại config.json
+- khởi động lại dịch vụ Sing-box
+
+### 3) Cập nhật Node
+- Hiển thị danh sách node
+- Chọn số thứ tự node cần sửa
+- Có thể cập nhật:
+  - Tag
+  - Domain
+  - Port
+  - Chứng chỉ SSL
+- Sau khi cập nhật, hệ thống build config lại và restart Sing-box
+
+### 4) Xóa Node
+- Có thể xoá từng node theo số thứ tự
+- Hoặc xoá tất cả node nếu chọn để trống
+- Hệ thống sẽ đóng port tương ứng trên firewall và reload cấu hình mới
+
+---
+
+## Quản lý Sing-box
+
+Khi chọn 2 trong menu chính, bạn vào menu:
+
+```text
+===============================================================
+              QUẢN LÝ HỆ THỐNG SING-BOX
+===============================================================
+ Trạng thái hiện tại : ... | Phiên bản Sing-box : ...
+===============================================================
+ 1. Khởi động Sing-box
+ 2. Dừng Sing-box
+ 3. Khởi động lại Sing-box
+ 4. Xem nhật ký hoạt động
+ 0. Quay lại menu chính
+===============================================================
+```
+
+### Chức năng
+
+1. Khởi động Sing-box
+   - Chạy systemctl start sing-box
+   - Kiểm tra trạng thái sau khi khởi động
+
+2. Dừng Sing-box
+   - Chạy systemctl stop sing-box
+
+3. Khởi động lại Sing-box
+   - Chạy systemctl restart sing-box
+
+4. Xem nhật ký hoạt động
+   - Dùng journalctl -u sing-box -n 50 --no-pager
+
+---
+
+## Quản lý SSL Cloudflare
+
+Khi chọn 3 trong menu chính, bạn vào menu:
+
+```text
+=================================================
+           XIN CHỨNG CHỈ SSL CLOUDFLARE
+=================================================
+ 1. Đăng ký chứng chỉ SSL qua Cloudflare
+ 2. Xem danh sách chứng chỉ hiện có
+ 0. Quay lại menu chính
+=================================================
+```
+
+### Mục 1: Đăng ký chứng chỉ SSL
+Hệ thống sẽ yêu cầu:
+- Tên miền
+- Cloudflare Account Email
+- Cloudflare Global API Key hoặc API Token
+
+Sau đó sẽ:
+- kiểm tra cài đặt acme.sh
+- cấu hình môi trường CF_Key và CF_Email
+- xin chứng chỉ bằng dns_cf
+- lưu 파일 cert/key riêng theo tên miền trong thư mục certs
+
+Ví dụ lưu file:
+- certs/sub.domain.com.crt
+- certs/sub.domain.com.key
+
+### Mục 2: Xem danh sách chứng chỉ
+- Hiển thị các file .crt có trong thư mục certs
+- In thông tin Subject và Not After bằng openssl
+
+---
+
+## Quy trình thao tác phổ biến
+
+### Thêm node mới
+
 ```bash
 vvc
-# → Chọn: 1 (Quản Lý Node)
-# → Chọn: 1 (Thêm VLESS Reality)
-# → Port: [Enter] (tự động)
-# → SNI: [Enter] (tự chọn)
-# → Domain: example.com
-# → Tag: [Enter] (tự động)
+# Chọn: 1
+# Chọn: 2
+# Chọn giao thức: 1, 2, 3, 4 hoặc 5
+# Nhập Port hoặc để trống để tự chọn ngẫu nhiên
+# Nhập Domain hoặc để trống để lấy IP VPS
+# Nhập SNI hoặc để trống để tự sinh
+# Nhập Tag hoặc để trống để tạo tự động
+# Hệ thống sẽ sinh key, UUID, password nếu cần
 ```
 
-### Ví Dụ 2: Xin SSL Cloudflare
+### Khởi động lại dịch vụ
+
 ```bash
 vvc
-# → Chọn: 3 (Quản Lý SSL)
-# → Chọn: 1 (Đăng Ký SSL)
-# → Domain: sub.example.com
-# → Email CF: your@email.com
-# → API Key: [Nhập API Key]
+# Chọn: 2
+# Chọn: 3
 ```
 
-### Ví Dụ 3: Khởi Động Lại
+### Xem log
+
 ```bash
 vvc
-# → Chọn: 2 (Quản Lý Sing-Box)
-# → Chọn: 3 (Khởi Động Lại)
+# Chọn: 2
+# Chọn: 4
+```
+
+### Xin SSL mới
+
+```bash
+vvc
+# Chọn: 3
+# Chọn: 1
+# Nhập domain, email Cloudflare, API key/token
 ```
 
 ---
 
-## 🎓 Học Tập Theo Mức Độ
+## Cấu trúc dự án chính
 
-### 🟢 Beginner (Người Mới)
-1. Đọc [QUICK_START.md](QUICK_START.md) (5 phút)
-2. Cài đặt (`bash install.sh`)
-3. Thêm node đầu tiên
-
-**Tiếp theo:** Đọc phần 1-3 của [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md)
-
----
-
-### 🟡 Intermediate (Người Dùng)
-1. Đọc [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) đầy đủ
-2. Quản lý nhiều node
-3. Xin chứng chỉ SSL từ Cloudflare
-4. Giám sát logs
-
-**Khi có vấn đề:** Tra cứu [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-
----
-
-### 🔴 Advanced (Developer)
-1. Đọc [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md)
-2. Hiểu cấu trúc JSON & functions
-3. Tùy chỉnh config
-4. Mở rộng tính năng
-
----
-
-## 🔐 Bảo Mật
-
-### ⚠️ Lưu Ý Quan Trọng
-- ✅ Luôn chạy với quyền root
-- ✅ Backup dữ liệu định kỳ
-- ✅ Cập nhật hệ thống thường xuyên
-- ✅ Giám sát logs để phát hiện bất thường
-- ⚠️ Không chia sẻ API keys/tokens
-- ⚠️ Không để certificate files công khai
-
-### Backup Dữ Liệu
-```bash
-tar -czf /root/backup-$(date +%Y%m%d).tar.gz \
-    /root/nast-singbox-vvc/data \
-    /root/nast-singbox-vvc/certs
+```text
+/root/nast-singbox-vvc/
+├── install.sh
+├── main.sh
+├── update.sh
+├── modules/
+│   ├── nodes.sh
+│   ├── ssl.sh
+│   ├── system.sh
+│   └── utils.sh
+├── templates/
+│   ├── config.base.json
+│   ├── inbound_hy2.json
+│   ├── inbound_tuic.json
+│   └── vless/
+├── data/
+│   ├── nodes.json
+│   ├── domain.json
+│   ├── users.json
+│   └── config.json
+├── certs/
+│   └── ...
+└── README.md
 ```
 
 ---
 
-## 📞 Hỗ Trợ & Liên Hệ
+## Lưu ý quan trọng
 
-### Tài Nguyên
-- 🌐 **Website:** https://linksub24h.com
-- 📦 **GitHub:** https://github.com/Vietnamvpn/nast-singbox-vvc
-- 🐛 **Issues:** https://github.com/Vietnamvpn/nast-singbox-vvc/issues
-- 🤝 **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
-- � **Code of Conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- 👤 **Tác Giả:** Vietnamvpn
-
-### Khi Gặp Vấn Đề
-1. Tra cứu [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-2. Xem logs: `journalctl -u sing-box -e`
-3. Mở issue trên GitHub (tham khảo [CONTRIBUTING.md](CONTRIBUTING.md))
+- Dùng quyền root khi chạy vvc.
+- Khi thêm node, hệ thống sẽ tự động mở port trên firewall nếu phát hiện có công cụ như ufw, iptables hoặc firewalld.
+- Khi xoá node, hệ thống sẽ đóng port tương ứng và rebuild config cho Sing-box.
+- Khi thêm node mới, script sẽ tự động restart dịch vụ để áp dụng cấu hình mới.
+- Dữ liệu nodes, domain, users được lưu trong data/ và được dùng để build config.json.
 
 ---
 
-## 📄 License
+## Tóm tắt nhanh
 
-MIT License - Tự do sử dụng cho mục đích cá nhân & thương mại.
+Nếu muốn thao tác nhanh nhất:
+1. Chạy `vvc`
+2. Chọn 1 để quản lý node
+3. Chọn 2 để thêm node mới
+4. Chọn 2 ở menu chính để khởi động hoặc khởi động lại Sing-box
+5. Chọn 3 để tạo SSL Cloudflare
 
----
-
-## 🎯 Tìm Kiếm Nhanh
-
-| Tìm kiếm | Đọc file |
-|----------|----------|
-| Cài đặt nhanh (< 10 phút) | [QUICK_START.md](QUICK_START.md) |
-| Hướng dẫn chi tiết | [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md) |
-| Function reference | [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) |
-| Lỗi & giải pháp | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
-| Cấu trúc dữ liệu | TECHNICAL_REFERENCE.md → Section 1 |
-| Module functions | TECHNICAL_REFERENCE.md → Section 2 |
-| Protocol details | TECHNICAL_REFERENCE.md → Section 3 |
+Đây là đúng quy trình hiện có trong các file module của dự án.
 
 ---
 
-## 🚀 Bắt Đầu Ngay
+## Lưu ý quan trọng
+
+- Dùng quyền root khi chạy `vvc`.
+- Khi thêm node, hệ thống sẽ tự động mở port trên firewall nếu phát hiện công cụ như ufw, iptables hoặc firewalld.
+- Khi xoá node, hệ thống sẽ đóng port tương ứng và rebuild cấu hình mới.
+- Khi tạo node mới, script sẽ tự động khởi động lại dịch vụ để áp dụng cấu hình mới.
+- Dữ liệu node, domain và user được lưu trong thư mục `data/` và dùng để build `config.json`.
+
+---
+
+## Hỗ trợ nhanh
+
+Nếu gặp lỗi, hãy kiểm tra log bằng lệnh:
 
 ```bash
-# 1. Cải đặt
-sudo -i
-bash install.sh
+journalctl -u sing-box -e
+```
 
-# 2. Mở menu
+Nếu cần cập nhật hệ thống, vào menu chính rồi chọn:
+
+```text
+4. Cập Nhật Hệ Thống
+```
+
 vvc
 
 # 3. Thêm node từ menu
