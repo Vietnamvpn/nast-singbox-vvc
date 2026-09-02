@@ -362,7 +362,7 @@ form_vless_ws_tls() {
            "port": $port,
            "domain": $domain,
            "server_name": $server_name,
-           "ws_path": $auto_ws_path,
+           "ws_path": $ws_path,
            "cert_path": $cert_path,
            "key_path": $key_path
        }]' "$NODES_FILE" > "$NODES_FILE.tmp" && mv "$NODES_FILE.tmp" "$NODES_FILE"
